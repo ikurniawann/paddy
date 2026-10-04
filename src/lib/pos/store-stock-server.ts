@@ -3,6 +3,7 @@
 // pos.pos_stock_transfer_*) supaya kartu stok & total varian selalu konsisten.
 
 import { query, queryOne, withTransaction } from "@/lib/db";
+import type { UserScope } from "@/lib/api/scope";
 import {
   collectAllStoresSkuIds,
   type StockTransferAction,
@@ -174,6 +175,39 @@ async function assertLocation(warehouseId: string): Promise<void> {
   if (!row) throw new StoreStockError("Lokasi tidak ditemukan atau nonaktif", 404);
 }
 
+/**
+ * Lokasi yang boleh DIUBAH user (koreksi stok, kirim/terima transfer).
+ * null = semua lokasi (super admin / tanpa scope / scope holding-company);
+ * user ber-scope cabang (akun toko) hanya stall di cabangnya sendiri.
+ * Melihat stok semua toko tetap boleh supaya toko tahu harus minta ke mana.
+ */
+export async function loadManageableWarehouseIds(
+  scope: UserScope | null
+): Promise<Set<string> | null> {
+  if (!scope) return new Set();
+  if (scope.isUnscoped || scope.businessScope === "holding" || scope.businessScope === "company") {
+    return null;
+  }
+  if (!scope.branchId) return new Set();
+  const rows = await query<{ id: string }>(
+    `SELECT id FROM configuration.warehouses WHERE branch_id = $1`,
+    [scope.branchId]
+  );
+  return new Set(rows.map((row) => row.id));
+}
+
+export function canManageLocation(manageable: Set<string> | null, warehouseId: string): boolean {
+  return manageable === null || manageable.has(warehouseId);
+}
+
+/** Pihak yang berhak menjalankan aksi transfer: kirim/batal = asal, terima = tujuan. */
+export function transferActionLocation(
+  action: StockTransferAction,
+  transfer: { from_warehouse_id: string; to_warehouse_id: string }
+): string {
+  return action === "receive" ? transfer.to_warehouse_id : transfer.from_warehouse_id;
+}
+
 /** Koreksi stok absolut satu varian di satu lokasi (stock opname toko). */
 export async function setSkuLocationStock(input: {
   skuId: string;
@@ -289,9 +323,15 @@ function mapTransfer(row: StockTransferRow & { total_qty: unknown }): StockTrans
 export async function listStockTransfers(filter: {
   status?: string | null;
   warehouseId?: string | null;
+  /** Batasi ke transfer yang melibatkan lokasi ini (akun toko); null = semua. */
+  allowedWarehouseIds?: Set<string> | null;
 }): Promise<StockTransferRow[]> {
   const params: unknown[] = [];
   const where: string[] = [];
+  if (filter.allowedWarehouseIds) {
+    params.push([...filter.allowedWarehouseIds]);
+    where.push(`(t.from_warehouse_id = ANY($${params.length}::uuid[]) OR t.to_warehouse_id = ANY($${params.length}::uuid[]))`);
+  }
   if (filter.status) {
     params.push(filter.status);
     where.push(`t.status = $${params.length}`);

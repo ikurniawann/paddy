@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { requirePosMenu } from "@/lib/api/auth";
 import { IAM } from "@/lib/iam/prefixes";
 import { parseStockQuantity } from "@/lib/pos/store-stock";
+import { getApiUserScope } from "@/lib/api/scope";
 import {
+  canManageLocation,
   listStockLocations,
   listStoreStock,
+  loadManageableWarehouseIds,
   setSkuLocationStock,
   StoreStockError,
 } from "@/lib/pos/store-stock-server";
@@ -19,14 +22,23 @@ export async function GET(request: NextRequest) {
   if (guard.error) return guard.error;
   try {
     const params = request.nextUrl.searchParams;
-    const [locations, products] = await Promise.all([
+    const [locations, products, manageable] = await Promise.all([
       listStockLocations(),
       listStoreStock({
         search: params.get("search"),
         productId: params.get("product_id"),
       }),
+      getApiUserScope().then(loadManageableWarehouseIds),
     ]);
-    return NextResponse.json({ success: true, data: { locations, products } });
+    return NextResponse.json({
+      success: true,
+      data: {
+        locations,
+        products,
+        /** null = semua lokasi bisa diubah; selain itu hanya lokasi ini. */
+        manageable_warehouse_ids: manageable ? [...manageable] : null,
+      },
+    });
   } catch (error) {
     console.error("[store-stock] list failed:", error);
     return NextResponse.json({ success: false, error: errorMessage(error) }, { status: 500 });
@@ -57,6 +69,13 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: "Stok harus bilangan bulat 0 atau lebih" },
         { status: 400 }
+      );
+    }
+    const manageable = await loadManageableWarehouseIds(await getApiUserScope());
+    if (!canManageLocation(manageable, warehouseId)) {
+      return NextResponse.json(
+        { success: false, error: "Anda hanya bisa mengoreksi stok di lokasi Anda sendiri" },
+        { status: 403 }
       );
     }
     const result = await setSkuLocationStock({

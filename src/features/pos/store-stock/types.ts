@@ -11,6 +11,8 @@ import type { StockLocation, StoreStockProduct } from "@/lib/pos/store-stock-ser
 export type StoreStockResponse = {
   locations: StockLocation[];
   products: StoreStockProduct[];
+  /** Lokasi yang boleh dikoreksi user; null = semua (akun toko: hanya tokonya). */
+  manageable_warehouse_ids?: string[] | null;
 };
 
 export type SetLocationStockPayload = {
@@ -29,4 +31,6 @@ export type StockCellSelection = {
   warehouseId: string;
   warehouseName: string;
   qty: number;
+  /** false = lokasi milik toko lain: hanya kartu stok, tanpa koreksi. */
+  canEdit: boolean;
 };

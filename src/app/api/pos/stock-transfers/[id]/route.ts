@@ -2,10 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { requirePosMenu } from "@/lib/api/auth";
 import { IAM } from "@/lib/iam/prefixes";
 import { allowedTransferActions, type StockTransferAction } from "@/lib/pos/store-stock";
+import { getApiUserScope } from "@/lib/api/scope";
 import {
+  canManageLocation,
   getStockTransfer,
+  loadManageableWarehouseIds,
   runStockTransferAction,
   StoreStockError,
+  transferActionLocation,
 } from "@/lib/pos/store-stock-server";
 
 type Params = { params: Promise<{ id: string }> };
@@ -16,7 +20,12 @@ export async function GET(_request: NextRequest, { params }: Params) {
   const { id } = await params;
   try {
     const transfer = await getStockTransfer(id);
-    if (!transfer) {
+    const manageable = await loadManageableWarehouseIds(await getApiUserScope());
+    if (
+      !transfer ||
+      (!canManageLocation(manageable, transfer.from_warehouse_id) &&
+        !canManageLocation(manageable, transfer.to_warehouse_id))
+    ) {
       return NextResponse.json({ success: false, error: "Transfer tidak ditemukan" }, { status: 404 });
     }
     return NextResponse.json({ success: true, data: transfer });
@@ -41,10 +50,29 @@ export async function POST(request: NextRequest, { params }: Params) {
     if (!transfer) {
       return NextResponse.json({ success: false, error: "Transfer tidak ditemukan" }, { status: 404 });
     }
+    const manageable = await loadManageableWarehouseIds(await getApiUserScope());
+    if (
+      !canManageLocation(manageable, transfer.from_warehouse_id) &&
+      !canManageLocation(manageable, transfer.to_warehouse_id)
+    ) {
+      return NextResponse.json({ success: false, error: "Transfer tidak ditemukan" }, { status: 404 });
+    }
     if (!allowedTransferActions(transfer.status).includes(action)) {
       return NextResponse.json(
         { success: false, error: `Aksi tidak tersedia untuk transfer berstatus ${transfer.status}` },
         { status: 400 }
+      );
+    }
+    if (!canManageLocation(manageable, transferActionLocation(action, transfer))) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            action === "receive"
+              ? `Hanya ${transfer.to_name} yang bisa menerima transfer ini`
+              : `Hanya ${transfer.from_name} yang bisa ${action === "send" ? "mengirim" : "membatalkan"} transfer ini`,
+        },
+        { status: 403 }
       );
     }
     await runStockTransferAction(id, action, guard.userId);

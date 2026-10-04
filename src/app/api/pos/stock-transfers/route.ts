@@ -2,9 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { requirePosMenu } from "@/lib/api/auth";
 import { IAM } from "@/lib/iam/prefixes";
 import { normalizeTransferInput } from "@/lib/pos/store-stock";
+import { getApiUserScope } from "@/lib/api/scope";
 import {
+  canManageLocation,
   createStockTransfer,
   listStockTransfers,
+  loadManageableWarehouseIds,
   StoreStockError,
 } from "@/lib/pos/store-stock-server";
 
@@ -20,6 +23,7 @@ export async function GET(request: NextRequest) {
     const data = await listStockTransfers({
       status: status && STATUSES.has(status) ? status : null,
       warehouseId: params.get("warehouse_id"),
+      allowedWarehouseIds: await loadManageableWarehouseIds(await getApiUserScope()),
     });
     return NextResponse.json({ success: true, data });
   } catch (error) {
@@ -46,6 +50,21 @@ export async function POST(request: NextRequest) {
     const input = normalizeTransferInput(body);
     if (!input.ok) {
       return NextResponse.json({ success: false, error: input.error }, { status: 400 });
+    }
+    // Akun toko: transfer harus melibatkan lokasinya (kirim dari toko, atau
+    // draft permintaan ke toko). Kirim langsung hanya oleh lokasi asal.
+    const manageable = await loadManageableWarehouseIds(await getApiUserScope());
+    if (!canManageLocation(manageable, input.fromId) && !canManageLocation(manageable, input.toId)) {
+      return NextResponse.json(
+        { success: false, error: "Transfer harus dari atau ke lokasi Anda sendiri" },
+        { status: 403 }
+      );
+    }
+    if (body.send === true && !canManageLocation(manageable, input.fromId)) {
+      return NextResponse.json(
+        { success: false, error: "Hanya lokasi asal yang bisa mengirim — simpan sebagai draft permintaan" },
+        { status: 403 }
+      );
     }
     const transfer = await createStockTransfer({
       fromId: input.fromId,

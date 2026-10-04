@@ -48,7 +48,8 @@ terikat ke satu stall dan stok varian bersifat global.
 - [x] Halaman Stok per Toko & Transfer Stok Toko
 - [x] Seeder: struktur bisnis Paddy + katalog multi-toko dengan sebaran stok per lokasi
 - [x] Seeder demo transfer (diterima / dalam pengiriman / draft), idempoten
-- [ ] Akun kasir per toko (opsional, menunggu keputusan owner)
+- [x] Akun login per lokasi (seeder paddy-store-users.js): Admin Gudang HQ + Store Manager & Kasir per toko, scope cabang, tertaut karyawan HRIS
+- [x] Pembatasan lokasi API: koreksi stok hanya lokasi sendiri; transfer kirim/batal oleh asal, terima oleh tujuan; daftar transfer per lokasi
 - [ ] GRN langsung ke toko (saat ini GRN multi-toko masuk ke Gudang Pusat)
 
 ## Acceptance Criteria
@@ -78,3 +79,8 @@ terikat ke satu stall dan stok varian bersifat global.
   menolak jual produk multi-toko. Data uji dibersihkan, stok seed dipulihkan.
 - 2026-10-04 — Gate: vitest 300 file / 2433 test lulus; tsc 508 error = baseline (0 baru);
   check-no-hardcoded-brand OK; eslint bersih pada file baru.
+- 2026-10-04 — Akun toko (owner minta): 9 akun dibuat; password acak hanya di
+  ~/docker-infra/paddy/STORE-ACCOUNTS.md (chmod 600, di luar repo). E2E via https://paddy.reddie.id
+  18/18 PASS: 9 login; kasir PVJ katalog = stok PVJ, jual 1 (6→5), tidak bisa pindah ke stall Blok M
+  (403), tidak bisa koreksi stok Blok M (403), daftar transfer hanya PVJ; manager Blok M melihat transfer
+  masuk, tidak bisa langsung kirim dari HQ; gudang HQ tidak bisa menerima transfer milik Blok M.

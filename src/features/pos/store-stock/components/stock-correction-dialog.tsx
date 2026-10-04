@@ -59,7 +59,8 @@ function StockCorrectionContent({
   selection: StockCellSelection;
   onClose: () => void;
 }) {
-  const [tab, setTab] = useState<TabValue>('koreksi');
+  // Lokasi toko lain: hanya kartu stok (koreksi ditolak server untuk akun toko).
+  const [tab, setTab] = useState<TabValue>(selection.canEdit ? 'koreksi' : 'kartu');
   const [qtyInput, setQtyInput] = useState(() => String(selection.qty));
   const [note, setNote] = useState('');
   const setStockMutation = useSetLocationStock();
@@ -106,7 +107,7 @@ function StockCorrectionContent({
       <DialogPanelBody className="max-h-[65vh] space-y-4">
         <Tabs value={tab} onValueChange={(value) => setTab(value as TabValue)}>
           <TabsList>
-            <TabsTrigger value="koreksi">Koreksi stok</TabsTrigger>
+            {selection.canEdit ? <TabsTrigger value="koreksi">Koreksi stok</TabsTrigger> : null}
             <TabsTrigger value="kartu">
               <History className="h-3.5 w-3.5" />
               Kartu stok

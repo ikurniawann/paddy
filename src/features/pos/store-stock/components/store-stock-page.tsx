@@ -26,6 +26,10 @@ export function StoreStockPage() {
 
   const { data, isLoading, isFetching, error } = useStoreStock(searchTerm);
   const locations = useMemo(() => data?.locations ?? [], [data]);
+  const manageable = useMemo(
+    () => (data?.manageable_warehouse_ids ? new Set(data.manageable_warehouse_ids) : null),
+    [data]
+  );
   const products = useMemo(() => data?.products ?? [], [data]);
   const summary = useMemo(() => summarizeStoreStock(products, locations), [products, locations]);
   const errorMessage = error instanceof Error ? error.message : null;
@@ -221,9 +225,14 @@ export function StoreStockPage() {
                                     warehouseId: location.warehouse_id,
                                     warehouseName: location.warehouse_name,
                                     qty,
+                                    canEdit: !manageable || manageable.has(location.warehouse_id),
                                   })
                                 }
-                                title={`Koreksi stok ${sku.sku} di ${location.warehouse_name}`}
+                                title={
+                                  !manageable || manageable.has(location.warehouse_id)
+                                    ? `Koreksi stok ${sku.sku} di ${location.warehouse_name}`
+                                    : `Kartu stok ${sku.sku} di ${location.warehouse_name}`
+                                }
                                 className={`w-full rounded-md px-2 py-1.5 text-right font-medium tabular-nums outline-none transition hover:ring-1 hover:ring-pink-200 focus-visible:ring-2 focus-visible:ring-pink-300 ${stockCellClass(qty)}`}
                               >
                                 {formatQty(qty)}
