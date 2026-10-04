@@ -283,7 +283,7 @@ function SidebarHeader({
           <img
             src="/logos/logo.png?v=paddy2"
             alt="Paddy OS"
-            className="h-16 w-auto max-w-[10rem] shrink-0 object-contain object-left"
+            className="h-9 w-auto max-w-[6.5rem] shrink-0 object-contain object-left"
           />
           <div className="min-w-0 flex-1 leading-tight">
             {canSwitchStall ? (
