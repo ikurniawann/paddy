@@ -502,12 +502,16 @@ OLLAMA_MODEL=
 FONNTE_API_KEY=
 RESEND_API_KEY=
 NEXT_PUBLIC_APP_URL=
+
+# Mode kasir (build-time): fnb (default) | retail — Paddy memakai retail
+NEXT_PUBLIC_POS_MODE=retail
 ```
 
 | Variabel | Dipakai oleh | Keterangan |
 | --- | --- | --- |
 | `DATABASE_URL` | App Next.js (`pg`) | Koneksi utama aplikasi |
 | `MIGRATE_DATABASE_URL` | `db:migrate*`, seeder | Target migrasi (Postgres lokal) |
+| `NEXT_PUBLIC_POS_MODE` | Kasir POS (build-time) | `retail` = kasir toko: tanpa Dine-in/Take Away, jumlah tamu, meja, TV antrian, tombol "Order"; pasangkan dengan seeder `db:seed:paddy-retail-pos` |
 
 ## Getting Started
 

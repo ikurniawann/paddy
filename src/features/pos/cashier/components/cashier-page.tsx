@@ -103,6 +103,7 @@ import { PosProductThumbnail } from '@/components/pos/PosProductThumbnail';
 
 const CASHIER_ID = '00000000-0000-0000-0000-000000000001';
 import { CartPanel } from '@/components/pos/CartPanel';
+import { IS_RETAIL_POS, RETAIL_ORDER_TYPE } from '@/lib/pos/business-mode';
 import { MemberPriceText } from '@/components/pos/MemberPriceText';
 import { CustomizationModal, type SelectedCustomization } from '@/components/pos/CustomizationModal';
 import { PaymentModal, type PaymentMethod } from '@/components/pos/PaymentModal';
@@ -229,6 +230,12 @@ function CashierPageNewContent({ variant }: { variant: CashierPageVariant }) {
   });
   const { customers, findCustomer, refetch: refetchCustomers } = usePosCustomers();
   const cart = usePosCart();
+  // Kasir retail: jenis order tidak dipilih kasir; keranjang lama yang tersimpan
+  // di browser (mis. "dine_in") diseragamkan ke penjualan toko.
+  const { orderType: cartOrderType, setOrderType: setCartOrderType } = cart;
+  useEffect(() => {
+    if (IS_RETAIL_POS && cartOrderType !== RETAIL_ORDER_TYPE) setCartOrderType(RETAIL_ORDER_TYPE);
+  }, [cartOrderType, setCartOrderType]);
   // Saklar fitur CRM → Pengaturan: sembunyikan ARK Coin / XP bila dimatikan.
   const { arkCoin: arkEnabled, xp: xpEnabled } = useLoyaltyFeatures();
   const { checkout, submitting } = usePosCheckout();
@@ -1390,7 +1397,7 @@ function CashierPageNewContent({ variant }: { variant: CashierPageVariant }) {
         };
         storeResultPayload(receipt);
         toast.success(
-          overrides.queueNumber
+          overrides.queueNumber && !IS_RETAIL_POS
             ? `Pembayaran berhasil — Antrian ${overrides.queueNumber}`
             : 'Pembayaran berhasil'
         );
@@ -1933,7 +1940,7 @@ function CashierPageNewContent({ variant }: { variant: CashierPageVariant }) {
       };
       storeResultPayload(receipt);
       toast.success(
-        res.queueNumber
+        res.queueNumber && !IS_RETAIL_POS
           ? `Pembayaran berhasil — Antrian ${res.queueNumber}`
           : 'Pembayaran berhasil'
       );
@@ -2240,7 +2247,11 @@ function CashierPageNewContent({ variant }: { variant: CashierPageVariant }) {
       <div className={`flex shrink-0 flex-wrap items-center justify-between ${isTabletMode ? 'gap-2' : 'gap-3'}`}>
         <div className="min-w-0">
           <h1 className={`font-semibold text-gray-900 ${isTabletMode ? 'text-base' : 'text-xl'}`}>POS Cashier</h1>
-          {isTabletMode ? (
+          {IS_RETAIL_POS ? (
+            <p className={isTabletMode ? 'truncate text-xs text-muted-foreground' : 'text-sm text-gray-500'}>
+              Penjualan toko — scan barcode atau cari produk, lalu bayar
+            </p>
+          ) : isTabletMode ? (
             <p className="truncate text-xs text-muted-foreground">
               {selectedTableDisplay
                 ? `Meja ${selectedTableDisplay}`
@@ -2354,6 +2365,7 @@ function CashierPageNewContent({ variant }: { variant: CashierPageVariant }) {
                 <MonitorIcon className="mr-2 h-4 w-4" />
                 Layar Customer
               </Button>
+              {IS_RETAIL_POS ? null : (
               <Button
                 type="button"
                 variant="outline"
@@ -2370,6 +2382,7 @@ function CashierPageNewContent({ variant }: { variant: CashierPageVariant }) {
                 <MonitorIcon className="mr-2 h-4 w-4" />
                 TV Antrian
               </Button>
+              )}
             </div>
           ) : null}
           <PosTabletChromeControls
@@ -2444,6 +2457,8 @@ function CashierPageNewContent({ variant }: { variant: CashierPageVariant }) {
 
         <div className={`rounded-xl border border-gray-200/70 bg-white shadow-xs ${isTabletMode ? 'p-2.5' : 'p-4'}`}>
           <div className="flex flex-wrap items-center gap-2">
+            {IS_RETAIL_POS ? null : (
+            <>
             <button
               type="button"
               onClick={() => {
@@ -2472,6 +2487,8 @@ function CashierPageNewContent({ variant }: { variant: CashierPageVariant }) {
             >
               <ShoppingBag className="h-4 w-4" /> Take Away
             </button>
+            </>
+            )}
             <button
               onClick={() => setShowCustomerModal(true)}
               className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-all ${isTabletMode ? 'min-w-0' : 'min-w-[150px]'} ${
@@ -2751,6 +2768,9 @@ function CashierPageNewContent({ variant }: { variant: CashierPageVariant }) {
         className={cashierCartPanelClass(isTabletMode)}
         cart={cart.items}
         orderType={cart.orderType}
+        showOrderType={!IS_RETAIL_POS}
+        title={IS_RETAIL_POS ? 'Keranjang' : undefined}
+        notesPlaceholder={IS_RETAIL_POS ? 'Catatan transaksi — tercetak di struk' : undefined}
         selectedTable={selectedTableDisplay}
         subtotal={cart.subtotal}
         discountAmount={discountAmount}
@@ -2800,7 +2820,7 @@ function CashierPageNewContent({ variant }: { variant: CashierPageVariant }) {
         setIncludeTax={cart.setIncludeTax}
         setIncludeService={cart.setIncludeService}
         setShowPaymentModal={openPaymentModal}
-        onOpenBill={handleOpenBill}
+        onOpenBill={IS_RETAIL_POS ? undefined : handleOpenBill}
         continuingCheckoutNumber={paymentCheckoutId ? payingOrderNumber : null}
         lockedItemIds={persistedCartItemIds}
         isSavingBill={savingBill}
@@ -3298,13 +3318,15 @@ function CashierPageNewContent({ variant }: { variant: CashierPageVariant }) {
                       <h2 className="text-xl font-bold text-foreground">
                         Payment successful
                       </h2>
-                      {resultPayload.queueNumber ? (
+                      {resultPayload.queueNumber && !IS_RETAIL_POS ? (
                         <p className="text-4xl font-black tabular-nums text-foreground">
                           {resultPayload.queueNumber}
                         </p>
                       ) : null}
                       <p className="text-sm text-muted-foreground">
-                        {resultPayload.queueNumber
+                        {IS_RETAIL_POS && resultPayload.orderNumber
+                          ? `Order ${resultPayload.orderNumber}`
+                          : resultPayload.queueNumber
                           ? `Nomor Antrian · Order ${resultPayload.orderNumber || ""}`
                           : `Order #${
                               resultPayload.orderNumber?.slice(-8).toUpperCase() ||
@@ -3340,6 +3362,8 @@ function CashierPageNewContent({ variant }: { variant: CashierPageVariant }) {
                   </>
                 )}
 
+                {/* Checker order dapur/bar — tidak ada di toko retail. */}
+                {IS_RETAIL_POS ? null : (
                 <div className="grid grid-cols-2 gap-2">
                   {(
                     [
@@ -3360,6 +3384,7 @@ function CashierPageNewContent({ variant }: { variant: CashierPageVariant }) {
                     </Button>
                   ))}
                 </div>
+                )}
                 <Button
                   type="button"
                   onClick={() => void handlePrint("CUSTOMER")}

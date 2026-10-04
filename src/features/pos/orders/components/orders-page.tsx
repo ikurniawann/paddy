@@ -1,5 +1,6 @@
 "use client";
 
+import { IS_RETAIL_POS, RETAIL_SALE_LABEL } from "@/lib/pos/business-mode";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
@@ -146,7 +147,7 @@ function TypeBadge({ type, prominent = false }: { type?: string | null; prominen
   const value = String(type || "");
   const labels: Record<string, string> = {
     dine_in: "Dine-in",
-    takeaway: "Takeaway",
+    takeaway: IS_RETAIL_POS ? RETAIL_SALE_LABEL : "Takeaway",
     delivery: "Delivery",
     self_order: "Self-order",
   };
@@ -455,8 +456,14 @@ export function OrdersPage() {
                 className={selectClassName}
               >
                 <option value="">Semua</option>
-                <option value="dine_in">Dine-in</option>
-                <option value="takeaway">Takeaway</option>
+                {IS_RETAIL_POS ? (
+                  <option value="takeaway">{RETAIL_SALE_LABEL}</option>
+                ) : (
+                  <>
+                    <option value="dine_in">Dine-in</option>
+                    <option value="takeaway">Takeaway</option>
+                  </>
+                )}
                 <option value="delivery">Delivery</option>
               </select>
             </div>

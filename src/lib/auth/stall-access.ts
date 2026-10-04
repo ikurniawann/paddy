@@ -66,5 +66,16 @@ export async function getStallAccess(
     params
   );
 
+  // Akses penuh dari penempatan di Main Storage tidak bermakna bila cabang
+  // hanya punya satu stall (toko retail): tanpa ini kasir toko melihat
+  // "Semua Stall" dan bisa masuk mode yang menolak produk multi-toko.
+  if (
+    role !== "super_admin" &&
+    flags?.can_switch_stall !== true &&
+    stalls.length <= 1
+  ) {
+    return { allAccess: false, stalls: sortWarehouses(stalls) };
+  }
+
   return { allAccess, stalls: sortWarehouses(stalls) };
 }

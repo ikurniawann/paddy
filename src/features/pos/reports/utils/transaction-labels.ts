@@ -1,3 +1,4 @@
+import { IS_RETAIL_POS, RETAIL_SALE_LABEL } from "@/lib/pos/business-mode";
 import { canRenamePaymentMethodCode } from "@/lib/pos/payment-methods";
 
 /** Label laporan transaksi: bayar vs dapur, jangan campur. */
@@ -80,7 +81,8 @@ export function isPaidPaymentStatus(
 
 const ORDER_TYPE_LABEL: Record<string, string> = {
   dine_in: "Dine-in",
-  takeaway: "Takeaway",
+  // Kasir retail menyimpan penjualan toko sebagai takeaway (lib/pos/business-mode).
+  takeaway: IS_RETAIL_POS ? RETAIL_SALE_LABEL : "Takeaway",
   delivery: "Delivery",
 };
 

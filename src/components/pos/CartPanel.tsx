@@ -35,6 +35,12 @@ import {
 interface CartPanelProps {
   cart: PosCartItem[];
   orderType: 'dine_in' | 'takeaway' | 'delivery' | 'self_order';
+  /** false = sembunyikan label jenis order (kasir retail). Default true. */
+  showOrderType?: boolean;
+  /** Judul panel; default "Order" (retail: "Keranjang"). */
+  title?: string;
+  /** Placeholder catatan transaksi. */
+  notesPlaceholder?: string;
   selectedTable: string | null;
   subtotal: number;
   discountAmount: number;
@@ -60,7 +66,8 @@ interface CartPanelProps {
   setIncludeTax: (val: boolean) => void;
   setIncludeService?: (val: boolean) => void;
   setShowPaymentModal: () => void;
-  onOpenBill: () => void;
+  /** Simpan sebagai open bill ("Order", F&B). Tidak diisi = tombol disembunyikan (retail). */
+  onOpenBill?: () => void;
   isSavingBill: boolean;
   canTransact?: boolean;
   onOpenShift?: () => void;
@@ -135,6 +142,9 @@ function MoneyPair({
 export function CartPanel({
   cart,
   orderType,
+  showOrderType = true,
+  title = 'Order',
+  notesPlaceholder = 'Catatan transaksi — tercetak di CO & struk',
   selectedTable,
   subtotal,
   discountAmount,
@@ -248,7 +258,7 @@ export function CartPanel({
     >
       <div className="border-b border-gray-200/70 px-3 py-2">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-base font-semibold text-foreground">Order</h2>
+          <h2 className="text-base font-semibold text-foreground">{title}</h2>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">
               {cart.reduce((sum, i) => sum + i.quantity, 0)} items
@@ -274,22 +284,22 @@ export function CartPanel({
           </div>
         </div>
         <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {orderType === 'dine_in' && (
+          {showOrderType && orderType === 'dine_in' && (
             <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
               <Utensils className="h-3 w-3" /> Dine-in
             </span>
           )}
-          {orderType === 'takeaway' && (
+          {showOrderType && orderType === 'takeaway' && (
             <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700">
               <ShoppingBag className="h-3 w-3" /> Takeaway
             </span>
           )}
-          {orderType === 'delivery' && (
+          {showOrderType && orderType === 'delivery' && (
             <span className="inline-flex items-center gap-1 rounded-md bg-orange-50 px-2 py-0.5 text-[11px] font-medium text-orange-700">
               <Truck className="h-3 w-3" /> Delivery
             </span>
           )}
-          {orderType === 'dine_in' && selectedTable ? (
+          {showOrderType && orderType === 'dine_in' && selectedTable ? (
             <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
               Table {selectedTable}
             </span>
@@ -658,7 +668,7 @@ export function CartPanel({
             value={orderNotes}
             onChange={(e) => onOrderNotesChange(e.target.value)}
             maxLength={200}
-            placeholder="Catatan transaksi — tercetak di CO & struk"
+            placeholder={notesPlaceholder}
             className="h-8 w-full rounded-md border border-gray-200/80 bg-white px-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none focus:ring-1 focus:ring-primary/30"
           />
         ) : null}
@@ -782,6 +792,7 @@ export function CartPanel({
           </div>
         )}
         <div className="flex gap-2">
+        {onOpenBill ? (
         <Button
             type="button"
             variant="outline"
@@ -798,6 +809,7 @@ export function CartPanel({
               continuingCheckoutNumber && hasNewItems ? 'Order lagi' : 'Order'
             )}
           </Button>
+        ) : null}
         <Button
             type="button"
             onClick={setShowPaymentModal}

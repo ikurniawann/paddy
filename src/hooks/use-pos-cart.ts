@@ -1,6 +1,7 @@
 "use client";
 
 import { useReducer, useCallback, useEffect, useMemo, useState } from "react";
+import { IS_RETAIL_POS, RETAIL_ORDER_TYPE } from "@/lib/pos/business-mode";
 import {
   calculateBillCharges,
   DEFAULT_BILLING_CHARGES,
@@ -82,7 +83,8 @@ const STORAGE_KEY = POS_CART_STORAGE_KEY;
 
 const DEFAULT_CART_STATE: CartState = {
   items: [],
-  orderType: "dine_in",
+  // Kasir retail tidak memilih jenis order — semua penjualan toko = takeaway.
+  orderType: IS_RETAIL_POS ? RETAIL_ORDER_TYPE : "dine_in",
   selectedTable: null,
   selectedCustomerId: null,
   notes: "",

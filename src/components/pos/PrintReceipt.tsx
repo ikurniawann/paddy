@@ -1,5 +1,6 @@
 "use client";
 
+import { IS_RETAIL_POS } from "@/lib/pos/business-mode";
 import { toast } from "sonner";
 import type { PosCartItem } from "@/hooks/use-pos-cart";
 import {
@@ -154,12 +155,13 @@ export function buildReceiptEscPosLayout(
     for (const line of headerLines) lines.push({ text: line, align: "center" });
     lines.push({ text: RECEIPT_DIVIDER, align: "left" });
   }
-  lines.push(
-    { text: `--- ${heading} ---`, align: "center" },
-    { text: payload.orderType.replace(/_/g, "-").toUpperCase(), align: "center" },
-  );
+  lines.push({ text: `--- ${heading} ---`, align: "center" });
+  // Struk toko retail: tanpa jenis order (TAKEAWAY) & nomor antrian dapur.
+  if (!IS_RETAIL_POS) {
+    lines.push({ text: payload.orderType.replace(/_/g, "-").toUpperCase(), align: "center" });
+  }
   if (payload.table) lines.push({ text: payload.table, align: "center" });
-  if (payload.queueNumber) {
+  if (payload.queueNumber && !IS_RETAIL_POS) {
     lines.push({ text: `ANTRIAN ${payload.queueNumber}`, align: "center" });
   }
   lines.push({
@@ -528,9 +530,9 @@ export function buildReceiptHtml(payload: ReceiptPayload, label: ThermalPrintLab
     <div class="ticket">
     ${headerBlockHtml}
     <h1>--- ${heading} ---</h1>
-    <div class="big">${orderType.replace(/_/g, "-").toUpperCase()}</div>
+    ${IS_RETAIL_POS ? "" : `<div class="big">${orderType.replace(/_/g, "-").toUpperCase()}</div>`}
     ${table ? `<div class="center">${table}</div>` : ""}
-    ${queueNumber ? `<div class="big">ANTRIAN ${queueNumber}</div>` : ""}
+    ${queueNumber && !IS_RETAIL_POS ? `<div class="big">ANTRIAN ${queueNumber}</div>` : ""}
     <div class="center">${receiptDocumentLabel(payload)}</div>
     <div class="center">${new Date().toLocaleTimeString("id-ID")}</div>
     ${customerName ? `<div class="center">Customer: ${customerName}</div>` : ""}
