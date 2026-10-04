@@ -33,7 +33,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 type PortalSource = FormValues["source"];
 
-const logoUrl = "/logos/paddy-logo.png?v=paddy";
+const logoUrl = "/logos/paddy-wordmark.png?v=paddy2";
 
 export default function PortalPage() {
   const router = useRouter();

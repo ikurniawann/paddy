@@ -62,7 +62,7 @@ export function MemberLoginCard({ onSuccess }: { onSuccess: () => void }) {
     <div className="flex flex-1 flex-col justify-center gap-7 py-8">
       <div className="mp-rise flex flex-col items-center text-center">
         <Image
-          src="/logos/paddy-icon.png"
+          src="/logos/paddy-mark.png"
           alt="Paddy"
           width={112}
           height={112}

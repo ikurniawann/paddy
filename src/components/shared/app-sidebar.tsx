@@ -264,7 +264,7 @@ function SidebarHeader({
       {collapsed ? (
         <div className="flex w-full flex-col items-center justify-center gap-1">
           <img
-            src="/logos/logo.png?v=paddy"
+            src="/logos/logo.png?v=paddy2"
             alt="Paddy OS"
             className="h-9 w-9 object-contain"
           />
@@ -281,7 +281,7 @@ function SidebarHeader({
       ) : (
         <div className="flex w-full items-center gap-3">
           <img
-            src="/logos/logo.png?v=paddy"
+            src="/logos/logo.png?v=paddy2"
             alt="Paddy OS"
             className="h-16 w-auto max-w-[10rem] shrink-0 object-contain object-left"
           />

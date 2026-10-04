@@ -153,7 +153,7 @@ export function MemberPortalPage() {
       <header className="mp-rise flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <Image
-            src="/logos/paddy-icon.png"
+            src="/logos/paddy-mark.png"
             alt="Paddy"
             width={40}
             height={40}

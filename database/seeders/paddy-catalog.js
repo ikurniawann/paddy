@@ -83,11 +83,11 @@ async function upsertUnits(c, companyId) {
 async function upsertBrand(c) {
   const { rows } = await c.query(`SELECT id FROM item.brands WHERE lower(name) = 'paddy' LIMIT 1`);
   if (rows[0]) {
-    await c.query(`UPDATE item.brands SET industry = 'Retail', logo_url = '/logos/paddy-icon.png', is_active = true WHERE id = $1`, [rows[0].id]);
+    await c.query(`UPDATE item.brands SET industry = 'Retail', logo_url = '/logos/paddy-mark.png', is_active = true WHERE id = $1`, [rows[0].id]);
     return rows[0].id;
   }
   const ins = await c.query(
-    `INSERT INTO item.brands (name, industry, logo_url, is_active) VALUES ('Paddy', 'Retail', '/logos/paddy-icon.png', true) RETURNING id`
+    `INSERT INTO item.brands (name, industry, logo_url, is_active) VALUES ('Paddy', 'Retail', '/logos/paddy-mark.png', true) RETURNING id`
   );
   return ins.rows[0].id;
 }
