@@ -13,6 +13,9 @@
  * hanya bisa dikirim dari / diterima di tokonya. Akun ditautkan ke karyawan
  * HRIS lokasi itu (paddy-demo-hris.js) supaya nama & data kepegawaian nyambung.
  *
+ * PASSWORD DEV: PADDY_STORE_PASSWORD=<password> menyamakan password SEMUA akun
+ * (baru maupun lama) — hanya untuk lingkungan dev/demo.
+ *
  * PASSWORD: dibuat acak saat akun DIBUAT dan hanya dicetak sekali di output
  * (tidak disimpan di repo). Menjalankan ulang tidak mengubah password akun yang
  * sudah ada, kecuali dengan --reset-passwords. Tulis daftar ke file dengan
@@ -30,6 +33,8 @@ const bcrypt = require("bcryptjs");
 const { runSeeder } = require("./lib/paddy-demo");
 
 const RESET = process.argv.includes("--reset-passwords");
+/** Password tetap untuk dev/demo (opsional) — menimpa password semua akun. */
+const FIXED_PASSWORD = (process.env.PADDY_STORE_PASSWORD || "").trim() || null;
 
 /** [kode cabang, slug email, [peran, role, nip karyawan]...] */
 const ACCOUNTS = [
@@ -85,7 +90,7 @@ runSeeder("Seeding akun login per toko", async (c) => {
     let userId = existing[0]?.id ?? null;
     let password = null;
     if (!userId) {
-      password = generatePassword();
+      password = FIXED_PASSWORD ?? generatePassword();
       const { rows } = await c.query(
         `INSERT INTO auth.users (email, password_hash, email_verified_at, raw_user_meta_data, raw_app_meta_data)
          VALUES ($1, $2, NOW(), $3::jsonb, $4::jsonb) RETURNING id`,
@@ -93,7 +98,8 @@ runSeeder("Seeding akun login per toko", async (c) => {
       );
       userId = rows[0].id;
     } else {
-      if (RESET) password = generatePassword();
+      if (FIXED_PASSWORD) password = FIXED_PASSWORD;
+      else if (RESET) password = generatePassword();
       await c.query(
         `UPDATE auth.users
          SET email_verified_at = COALESCE(email_verified_at, NOW()), banned_until = NULL,
