@@ -1,0 +1,20 @@
+{
+  "name": "Paddy POS Kasir",
+  "short_name": "Paddy POS",
+  "description": "Mode tablet / kiosk untuk kasir Paddy POS",
+  "start_url": "/dashboard/pos/tablet",
+  "scope": "/dashboard/pos/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#111111",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
