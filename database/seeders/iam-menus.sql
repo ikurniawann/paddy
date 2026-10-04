@@ -300,4 +300,4 @@ WHERE deleted_at IS NULL
     -- Tagihan Member (1 Okt 2026):
     'pos.operations.member-bills',
     -- Multi-toko: stok per toko & transfer stok (4 Okt 2026):
-    'pos.catalog.store-stock', 'pos.catalog.stock-transfers');
+    'pos.catalog.store-stock', 'pos.catalog.stock-transfers', 'items.product.inventory.store-stock');

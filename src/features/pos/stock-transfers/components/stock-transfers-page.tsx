@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { storeStockRoutesFor } from '@/lib/pos/store-stock';
 import { AlertTriangle, ArrowRight, ArrowRightLeft, Eye, Loader2, Plus, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PurchasingPageHeader } from '@/modules/purchasing/components/page/purchasing-page-header';
@@ -45,7 +46,7 @@ export function StockTransfersPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push('/dashboard/pos/store-stock')}
+              onClick={() => router.push(storeStockRoutesFor(pathname).stock)}
               className="h-9 gap-2"
             >
               <Store className="h-4 w-4" />

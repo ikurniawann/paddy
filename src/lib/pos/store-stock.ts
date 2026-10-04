@@ -57,6 +57,27 @@ export function collectAllStoresSkuIds(products: Array<Record<string, unknown>>)
   return ids;
 }
 
+/**
+ * Halaman multi-toko ada di dua tempat: Items → Produk → Persediaan (utama)
+ * dan pintasan POS untuk Store Manager (role toko tidak boleh diberi menu di
+ * bawah `items` karena guard API IAM berbasis prefix). Tautan antarhalaman
+ * tetap di modul yang sedang dibuka.
+ */
+export const STORE_STOCK_ROUTES = {
+  inventory: {
+    stock: "/dashboard/product/inventory/store-stock",
+    transfers: "/dashboard/product/inventory/transfer",
+  },
+  pos: {
+    stock: "/dashboard/pos/store-stock",
+    transfers: "/dashboard/pos/stock-transfers",
+  },
+} as const;
+
+export function storeStockRoutesFor(pathname: string | null | undefined) {
+  return pathname?.startsWith("/dashboard/pos") ? STORE_STOCK_ROUTES.pos : STORE_STOCK_ROUTES.inventory;
+}
+
 export type StockTransferStatus = "draft" | "sent" | "received" | "cancelled";
 
 export const STOCK_TRANSFER_STATUS_LABEL: Record<StockTransferStatus, string> = {

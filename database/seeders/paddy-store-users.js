@@ -3,7 +3,7 @@
 /**
  * Seeder: akun login per lokasi Paddy (multi-toko, EPIC-052).
  *
- *   HQ        gudang@paddy.id               Admin Gudang Pusat   POS Supervisor
+ *   HQ        gudang@paddy.id               Admin Gudang Pusat   Warehouse Admin
  *   per toko  manager.<toko>@paddy.id       Store Manager        POS Supervisor
  *             kasir.<toko>@paddy.id         Kasir                POS Cashier
  *
@@ -38,7 +38,9 @@ const FIXED_PASSWORD = (process.env.PADDY_STORE_PASSWORD || "").trim() || null;
 
 /** [kode cabang, slug email, [peran, role, nip karyawan]...] */
 const ACCOUNTS = [
-  { branch: "PADDY-HQ", email: "gudang@paddy.id", title: "Admin Gudang Pusat", role: "pos_supervisor", nip: "PDY-1012" },
+  // Gudang Pusat memakai role Warehouse Admin: Stok per Toko & Transfer Stok ada di
+  // Items → Produk → Persediaan, ditambah penerimaan barang (GRN) dari supplier.
+  { branch: "PADDY-HQ", email: "gudang@paddy.id", title: "Admin Gudang Pusat", role: "warehouse_admin", nip: "PDY-1012" },
   { branch: "PADDY-BDG-GANDAPURA", email: "manager.gandapura@paddy.id", title: "Store Manager", role: "pos_supervisor", nip: "PDY-1001" },
   { branch: "PADDY-BDG-GANDAPURA", email: "kasir.gandapura@paddy.id", title: "Kasir", role: "pos", nip: "PDY-1003" },
   { branch: "PADDY-BDG-PVJ", email: "manager.pvj@paddy.id", title: "Store Manager", role: "pos_supervisor", nip: "PDY-1002" },

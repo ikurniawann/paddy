@@ -35,7 +35,7 @@ terikat ke satu stall dan stok varian bersifat global.
 | Kasir | produk `all` muncul di katalog setiap stall; stall-nya = toko jual aktif; stok varian di katalog = stok toko aktif; klaim lewat `pos_sell_merchandise_sku_stock_at(sku, toko, qty)` |
 | Semua Stall / kasir pusat | produk `all` tidak bisa dijual tanpa toko aktif (pesan: pilih toko aktif) |
 | Transfer | `pos.pos_stock_transfers` draft → sent (stok keluar asal, dijaga tidak minus) → received (stok masuk tujuan); batal setelah kirim = stok kembali |
-| UI | POS → Produk & Stok → **Stok per Toko** (matriks varian × lokasi, koreksi, kartu stok) & **Transfer Stok Toko**; dialog Pengaturan Merchandise: toggle "Jual di semua toko" |
+| UI | Items → Produk → Persediaan → **Stok per Toko** & **Transfer Stok** (utama, owner 2026-10-04); pintasan POS → Produk & Stok hanya untuk Store Manager; dialog Pengaturan Merchandise: toggle "Jual di semua toko" |
 | Peringatan stok | Stok Alert menampilkan varian yang menipis/habis per toko |
 
 ## Tasks
@@ -84,3 +84,10 @@ terikat ke satu stall dan stok varian bersifat global.
   18/18 PASS: 9 login; kasir PVJ katalog = stok PVJ, jual 1 (6→5), tidak bisa pindah ke stall Blok M
   (403), tidak bisa koreksi stok Blok M (403), daftar transfer hanya PVJ; manager Blok M melihat transfer
   masuk, tidak bisa langsung kirim dari HQ; gudang HQ tidak bisa menerima transfer milik Blok M.
+- 2026-10-04 — Menu dipindah ke Items → Produk → Persediaan (keputusan owner). Temuan keamanan:
+  guard API IAM berbasis prefix (`hasAnyIamMenuPrefix`) — memberi role toko satu menu di bawah
+  `items` akan membuka ±64 API Items (GRN, delivery, opname, penyesuaian). Keputusan: Persediaan
+  untuk role gudang/purchasing/admin (gudang@ → warehouse_admin); Store Manager memakai pintasan
+  POS (`pos.catalog.*`, hanya pos_supervisor); kasir tanpa akses (juga dikecualikan di
+  iam-role-permissions.sql). Menu `items.product.inventory.transfer` yang dulu 404 kini berisi
+  halaman transfer. E2E 11/11 PASS (termasuk manager PVJ: GRN 403, opname 403; kasir: stok 403).

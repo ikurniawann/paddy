@@ -1096,11 +1096,8 @@ export function ProductsPage() {
                 <p className="mt-1 text-xs text-gray-500">
                   {merchModalProduct.storeScope === 'all' ? (
                     <>
-                      Stok varian dihitung per toko — atur di{' '}
-                      <a href="/dashboard/pos/store-stock" className="font-medium text-pink-700 underline">
-                        Stok per Toko
-                      </a>{' '}
-                      atau pindahkan lewat Transfer Stok Toko.
+                      Stok varian dihitung per toko — atur di menu <strong>Stok per Toko</strong>{' '}
+                      (Items → Produk → Persediaan) atau pindahkan lewat Transfer Stok.
                     </>
                   ) : merchForm.storeScope === 'all' ? (
                     'Saat disimpan, stok varian sekarang menjadi stok lokasi utama (stall katalog induk); toko lain mulai dari 0 dan diisi lewat transfer.'

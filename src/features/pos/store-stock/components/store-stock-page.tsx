@@ -1,7 +1,8 @@
 'use client';
 
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { storeStockRoutesFor } from '@/lib/pos/store-stock';
 import { AlertTriangle, ArrowRightLeft, Loader2, Search, Store, Warehouse, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ import { StockCorrectionDialog } from './stock-correction-dialog';
 
 export function StoreStockPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selection, setSelection] = useState<StockCellSelection | null>(null);
@@ -42,7 +44,7 @@ export function StoreStockPage() {
         actions={
           <Button
             type="button"
-            onClick={() => router.push('/dashboard/pos/stock-transfers?new=1')}
+            onClick={() => router.push(`${storeStockRoutesFor(pathname).transfers}?new=1`)}
             className="purchasing-main-button h-9 gap-2"
           >
             <ArrowRightLeft className="h-4 w-4" />

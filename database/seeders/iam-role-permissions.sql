@@ -67,6 +67,9 @@ SELECT r.id, m.id, COALESCE(m.permission_context->'actions', '["read"]'::jsonb)
 FROM iam.roles r CROSS JOIN iam.menus m
 WHERE r.code IN ('pos', 'pos_supervisor') AND m.deleted_at IS NULL AND m.is_active = true
   AND (m.code = 'dashboard' OR m.module = 'pos')
+  -- Stok per Toko & Transfer Stok (multi-toko): hanya Store Manager, bukan kasir
+  -- (lihat 20261004130000_store_stock_menus_to_inventory.sql).
+  AND NOT (r.code = 'pos' AND m.code IN ('pos.catalog.store-stock', 'pos.catalog.stock-transfers'))
 ON CONFLICT (role_id, menu_id) DO UPDATE SET is_active = true, granted_actions = EXCLUDED.granted_actions, updated_at = now();
 
 -- direksi -> overview lintas modul
