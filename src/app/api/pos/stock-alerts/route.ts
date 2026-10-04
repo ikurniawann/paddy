@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createPgClient } from "@/lib/pg/create-client";
 import { getPosSession } from "@/lib/api/auth";
+import { listLowStoreStock } from "@/lib/pos/store-stock-server";
 import type {
   ProductAtRiskAlert,
   ProductIngredientAlert,
@@ -194,7 +195,21 @@ export async function GET() {
     if (rawError) throw rawError;
     if (bomError) throw bomError;
 
-    const posProducts = await loadPosProductStockAlerts(db);
+    const posProducts = [
+      ...(await loadPosProductStockAlerts(db)),
+      // Multi-toko: varian yang menipis/habis di toko tertentu.
+      ...(await listLowStoreStock()).map(
+        (row): PosProductStockAlert => ({
+          id: `${row.sku_id}:${row.warehouse_id}`,
+          sku: row.sku,
+          name: `${row.product_name} · ${row.sku_name} — ${row.warehouse_name}`,
+          current: row.stock_quantity,
+          min: row.min_stock,
+          alert_level: row.stock_quantity <= 0 ? "critical" : "warning",
+          location: row.warehouse_name,
+        })
+      ),
+    ];
 
     const rawMaterials: RawMaterialAlert[] = ((rawMaterialRows || []) as RawMaterialRow[]).map((item) => {
       const qty = toNumber(item.qty_onhand);

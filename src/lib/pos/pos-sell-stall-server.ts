@@ -206,9 +206,40 @@ export interface PosProductStallInfo {
   stall_name: string | null;
 }
 
+/**
+ * Opsi resolusi stall produk multi-toko (pos_products.store_scope = 'all').
+ * Produk seperti itu dijual di toko mana pun, jadi stall-nya = toko transaksi
+ * (allStoresWarehouseId). Tanpa toko aktif (mode "Semua Stall") → null.
+ */
+export type ProductStallOptions = { allStoresWarehouseId?: string | null };
+
+export const ALL_STORES_NEEDS_STALL_MESSAGE =
+  "Produk multi-toko dijual per toko — pilih toko aktif dulu (bukan Semua Stall)";
+
+/** Produk di daftar yang dijual di semua toko (store_scope = 'all'). */
+export async function loadAllStoresProductIds(productIds: string[]): Promise<Set<string>> {
+  const ids = [...new Set(productIds.filter(Boolean))];
+  if (ids.length === 0) return new Set();
+  const rows = await query<{ id: string }>(
+    `SELECT id FROM pos.pos_products WHERE id = ANY($1::uuid[]) AND store_scope = 'all'`,
+    [ids]
+  );
+  return new Set(rows.map((row) => row.id));
+}
+
+async function loadWarehouseName(warehouseId: string | null | undefined): Promise<string | null> {
+  if (!warehouseId) return null;
+  const row = await queryOne<{ name: string }>(
+    `SELECT name FROM configuration.warehouses WHERE id = $1`,
+    [warehouseId]
+  );
+  return row?.name ?? null;
+}
+
 /** Map POS product ids → purchasing warehouse_id + name (null if unlinked). */
 export async function loadPosProductWarehouses(
-  productIds: string[]
+  productIds: string[],
+  options: ProductStallOptions = {}
 ): Promise<Map<string, PosProductWarehouse>> {
   const map = new Map<string, PosProductWarehouse>();
   const ids = [...new Set(productIds.filter(Boolean))];
@@ -216,10 +247,12 @@ export async function loadPosProductWarehouses(
 
   const rows = await query<{
     id: string;
+    store_scope: string | null;
     warehouse_id: string | null;
     warehouse_name: string | null;
   }>(
     `SELECT pp.id,
+            pp.store_scope,
             COALESCE(
               p.warehouse_id,
               p_sku.warehouse_id
@@ -239,7 +272,15 @@ export async function loadPosProductWarehouses(
     [ids]
   );
 
+  const allStoresId = options.allStoresWarehouseId ?? null;
+  const allStoresName = rows.some((row) => row.store_scope === "all")
+    ? await loadWarehouseName(allStoresId)
+    : null;
   for (const row of rows) {
+    if (row.store_scope === "all") {
+      map.set(row.id, { warehouse_id: allStoresId, warehouse_name: allStoresName });
+      continue;
+    }
     map.set(row.id, {
       warehouse_id: row.warehouse_id,
       warehouse_name: row.warehouse_name,
@@ -253,7 +294,8 @@ export async function loadPosProductWarehouses(
 
 /** Map POS product ids → stall (warehouse) + nama utk badge katalog/struk. */
 export async function loadPosProductStallInfo(
-  productIds: string[]
+  productIds: string[],
+  options: ProductStallOptions = {}
 ): Promise<Map<string, PosProductStallInfo>> {
   const map = new Map<string, PosProductStallInfo>();
   const ids = [...new Set(productIds.filter(Boolean))];
@@ -261,11 +303,13 @@ export async function loadPosProductStallInfo(
 
   const rows = await query<{
     id: string;
+    store_scope: string | null;
     warehouse_id: string | null;
     stall_code: string | null;
     stall_name: string | null;
   }>(
     `SELECT pp.id,
+            pp.store_scope,
             COALESCE(p.warehouse_id, p_sku.warehouse_id) AS warehouse_id,
             COALESCE(w.code, w_sku.code) AS stall_code,
             COALESCE(w.name, w_sku.name) AS stall_name
@@ -283,7 +327,22 @@ export async function loadPosProductStallInfo(
     [ids]
   );
 
+  const allStoresId = options.allStoresWarehouseId ?? null;
+  const allStores = rows.some((row) => row.store_scope === "all") && allStoresId
+    ? await queryOne<{ code: string; name: string }>(
+        `SELECT code, name FROM configuration.warehouses WHERE id = $1`,
+        [allStoresId]
+      )
+    : null;
   for (const row of rows) {
+    if (row.store_scope === "all") {
+      map.set(row.id, {
+        warehouse_id: allStoresId,
+        stall_code: allStores?.code ?? null,
+        stall_name: allStores?.name ?? null,
+      });
+      continue;
+    }
     map.set(row.id, {
       warehouse_id: row.warehouse_id,
       stall_code: row.stall_code,
@@ -295,9 +354,10 @@ export async function loadPosProductStallInfo(
 
 /** Map POS product ids → purchasing warehouse_id (null if unlinked). */
 export async function loadPosProductWarehouseIds(
-  productIds: string[]
+  productIds: string[],
+  options: ProductStallOptions = {}
 ): Promise<Map<string, string | null>> {
-  const warehouses = await loadPosProductWarehouses(productIds);
+  const warehouses = await loadPosProductWarehouses(productIds, options);
   const map = new Map<string, string | null>();
   for (const [id, row] of warehouses) {
     map.set(id, row.warehouse_id);
@@ -309,7 +369,10 @@ export async function assertOrderItemsMatchSellStall(
   productIds: string[],
   stallId: string
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-  const warehouseByProduct = await loadPosProductWarehouseIds(productIds);
+  // Produk multi-toko selalu cocok dengan stall transaksi.
+  const warehouseByProduct = await loadPosProductWarehouseIds(productIds, {
+    allStoresWarehouseId: stallId,
+  });
   const warehouseIds = productIds.map((id) => warehouseByProduct.get(id) ?? null);
   return assertProductWarehousesMatchStall(warehouseIds, stallId);
 }

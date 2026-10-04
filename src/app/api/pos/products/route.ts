@@ -17,6 +17,8 @@ import {
   applyStallScopeToProductIds,
   resolvePosProductStallScope,
 } from '@/lib/pos/stall-product-scope';
+import { applyStoreSkuStock } from '@/lib/pos/store-stock';
+import { loadStoreSkuStock } from '@/lib/pos/store-stock-server';
 
 type ProductVariantPayload = {
   name?: string;
@@ -161,16 +163,26 @@ export async function GET(request: NextRequest) {
     );
 
     const productIds = enrichedProducts.map((product) => String(product.id ?? ""));
-    const [warehouseByProduct, stallInfo] = await Promise.all([
-      loadPosProductWarehouses(productIds),
-      loadPosProductStallInfo(productIds),
+    // Produk multi-toko: stall = toko jual aktif, stok varian = stok toko itu.
+    const sellWarehouseId =
+      stallScope.mode === "ids" ? stallScope.sellWarehouseId ?? null : null;
+    // Halaman master produk (include_inactive) tetap melihat stok total semua toko.
+    const storeStockWarehouseId = includeInactive ? null : sellWarehouseId;
+    const stallOptions = { allStoresWarehouseId: sellWarehouseId };
+    const [warehouseByProduct, stallInfo, storeStock] = await Promise.all([
+      loadPosProductWarehouses(productIds, stallOptions),
+      loadPosProductStallInfo(productIds, stallOptions),
+      loadStoreSkuStock(
+        enrichedProducts as Array<Record<string, unknown>>,
+        storeStockWarehouseId
+      ),
     ]);
     const productsWithWarehouse = enrichedProducts.map((product) => {
       const id = String(product.id ?? "");
       const warehouse = warehouseByProduct.get(id);
       const info = stallInfo.get(id);
       return {
-        ...product,
+        ...applyStoreSkuStock(product as Record<string, unknown>, storeStock),
         warehouse_id: warehouse?.warehouse_id ?? info?.warehouse_id ?? null,
         warehouse_name: warehouse?.warehouse_name ?? info?.stall_name ?? null,
         stall_warehouse_id: info?.warehouse_id ?? warehouse?.warehouse_id ?? null,

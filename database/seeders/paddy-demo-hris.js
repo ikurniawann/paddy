@@ -18,23 +18,29 @@
 
 const { dayFrom, runSeeder } = require("./lib/paddy-demo");
 
-/** [nama, nip, email, telepon, departemen_code, jabatan, status, gender, kota, mulai_kerja_hari] */
+/** [nama, nip, email, telepon, departemen_code, jabatan, status, gender, kota, mulai_kerja_hari, kode_cabang_lokasi_kerja] */
 const EMPLOYEES = [
-  ["Rizky Ananda", "PDY-1001", "rizky.ananda@paddy.id", "081210001001", "RTL", "Store Manager", "permanent", "male", "Bandung", -900],
-  ["Putri Maharani", "PDY-1002", "putri.maharani@paddy.id", "081210001002", "RTL", "Store Supervisor", "permanent", "female", "Bandung", -540],
-  ["Salsa Ramadhani", "PDY-1003", "salsa.ramadhani@paddy.id", "081210001003", "RTL", "Store Cashier", "contract", "female", "Bandung", -300],
-  ["Nadia Safitri", "PDY-1004", "nadia.safitri@paddy.id", "081210001004", "RTL", "Retail Associate", "contract", "female", "Cimahi", -240],
-  ["Fajar Nugroho", "PDY-1005", "fajar.nugroho@paddy.id", "081210001005", "RTL", "Retail Associate", "probation", "male", "Kab. Bandung", -60],
-  ["Tiara Wulandari", "PDY-1006", "tiara.wulandari@paddy.id", "081210001006", "ECOM", "E-Commerce Manager", "permanent", "female", "Bandung", -720],
-  ["Bagas Pratama", "PDY-1007", "bagas.pratama@paddy.id", "081210001007", "ECOM", "Admin Marketplace", "contract", "male", "Bandung", -400],
-  ["Aulia Rahma", "PDY-1008", "aulia.rahma@paddy.id", "081210001008", "ECOM", "Customer Service Online", "contract", "female", "Bandung", -200],
-  ["Dimas Kurniawan", "PDY-1009", "dimas.kurniawan@paddy.id", "081210001009", "PRD", "Production Supervisor", "permanent", "male", "Kab. Bandung", -800],
-  ["Kevin Halim", "PDY-1010", "kevin.halim@paddy.id", "081210001010", "PRD", "Graphic Designer", "permanent", "male", "Bandung", -480],
-  ["Yoga Firmansyah", "PDY-1011", "yoga.firmansyah@paddy.id", "081210001011", "PRD", "Operator UV Printing", "contract", "male", "Kab. Bandung", -330],
-  ["Rina Oktaviani", "PDY-1012", "rina.oktaviani@paddy.id", "081210001012", "WHL", "Packer", "contract", "female", "Kab. Bandung", -150],
-  ["Ayu Lestari", "PDY-1013", "ayu.lestari@paddy.id", "081210001013", "PROC", "Purchasing Staff", "permanent", "female", "Bandung", -365],
-  ["Hendra Saputra", "PDY-1014", "hendra.saputra@paddy.id", "081210001014", "FIN", "Accounting Supervisor", "permanent", "male", "Bandung", -600],
-  ["Michelle Tan", "PDY-1015", "michelle.tan@paddy.id", "081210001015", "MKT", "Content Creator", "contract", "female", "Bandung", -180],
+  ["Rizky Ananda", "PDY-1001", "rizky.ananda@paddy.id", "081210001001", "RTL", "Store Manager", "permanent", "male", "Bandung", -900, "PADDY-BDG-GANDAPURA"],
+  ["Putri Maharani", "PDY-1002", "putri.maharani@paddy.id", "081210001002", "RTL", "Store Supervisor", "permanent", "female", "Bandung", -540, "PADDY-BDG-PVJ"],
+  ["Salsa Ramadhani", "PDY-1003", "salsa.ramadhani@paddy.id", "081210001003", "RTL", "Store Cashier", "contract", "female", "Bandung", -300, "PADDY-BDG-GANDAPURA"],
+  ["Nadia Safitri", "PDY-1004", "nadia.safitri@paddy.id", "081210001004", "RTL", "Retail Associate", "contract", "female", "Cimahi", -240, "PADDY-BDG-PVJ"],
+  ["Fajar Nugroho", "PDY-1005", "fajar.nugroho@paddy.id", "081210001005", "RTL", "Retail Associate", "probation", "male", "Kab. Bandung", -60, "PADDY-BDG-GANDAPURA"],
+  ["Tiara Wulandari", "PDY-1006", "tiara.wulandari@paddy.id", "081210001006", "ECOM", "E-Commerce Manager", "permanent", "female", "Bandung", -720, "PADDY-HQ"],
+  ["Bagas Pratama", "PDY-1007", "bagas.pratama@paddy.id", "081210001007", "ECOM", "Admin Marketplace", "contract", "male", "Bandung", -400, "PADDY-HQ"],
+  ["Aulia Rahma", "PDY-1008", "aulia.rahma@paddy.id", "081210001008", "ECOM", "Customer Service Online", "contract", "female", "Bandung", -200, "PADDY-HQ"],
+  ["Dimas Kurniawan", "PDY-1009", "dimas.kurniawan@paddy.id", "081210001009", "PRD", "Production Supervisor", "permanent", "male", "Kab. Bandung", -800, "PADDY-HQ"],
+  ["Kevin Halim", "PDY-1010", "kevin.halim@paddy.id", "081210001010", "PRD", "Graphic Designer", "permanent", "male", "Bandung", -480, "PADDY-HQ"],
+  ["Yoga Firmansyah", "PDY-1011", "yoga.firmansyah@paddy.id", "081210001011", "PRD", "Operator UV Printing", "contract", "male", "Kab. Bandung", -330, "PADDY-HQ"],
+  ["Rina Oktaviani", "PDY-1012", "rina.oktaviani@paddy.id", "081210001012", "WHL", "Packer", "contract", "female", "Kab. Bandung", -150, "PADDY-HQ"],
+  ["Ayu Lestari", "PDY-1013", "ayu.lestari@paddy.id", "081210001013", "PROC", "Purchasing Staff", "permanent", "female", "Bandung", -365, "PADDY-HQ"],
+  ["Hendra Saputra", "PDY-1014", "hendra.saputra@paddy.id", "081210001014", "FIN", "Accounting Supervisor", "permanent", "male", "Bandung", -600, "PADDY-HQ"],
+  ["Intan Permata", "PDY-1016", "intan.permata@paddy.id", "081210001016", "RTL", "Retail Associate", "contract", "female", "Bandung", -120, "PADDY-BDG-GANDAPURA"],
+  ["Dewi Anggraeni", "PDY-1017", "dewi.anggraeni@paddy.id", "081210001017", "RTL", "Store Manager", "permanent", "female", "Jakarta Selatan", -420, "PADDY-JKT-BLOKM"],
+  ["Rafi Pradana", "PDY-1018", "rafi.pradana@paddy.id", "081210001018", "RTL", "Retail Associate", "contract", "male", "Jakarta Selatan", -200, "PADDY-JKT-BLOKM"],
+  ["Nabila Zahra", "PDY-1019", "nabila.zahra@paddy.id", "081210001019", "RTL", "Store Cashier", "contract", "female", "Jakarta Selatan", -160, "PADDY-JKT-BLOKM"],
+  ["Citra Lestari", "PDY-1020", "citra.lestari@paddy.id", "081210001020", "RTL", "Store Supervisor", "permanent", "female", "Jakarta Pusat", -380, "PADDY-JKT-LMN"],
+  ["Andre Wijaya", "PDY-1021", "andre.wijaya@paddy.id", "081210001021", "RTL", "Retail Associate", "probation", "male", "Jakarta Selatan", -45, "PADDY-JKT-LMN"],
+  ["Michelle Tan", "PDY-1015", "michelle.tan@paddy.id", "081210001015", "MKT", "Content Creator", "contract", "female", "Bandung", -180, "PADDY-HQ"],
 ];
 
 /** [nama, mulai, selesai, istirahat_menit, toleransi_menit, lintas_hari, urutan] — jam buka toko 10.00–21.00 */
@@ -109,7 +115,12 @@ runSeeder("Seeding demo HRIS", async (c, scope) => {
   // ── Kontrak kerja ─────────────────────────────────────────────────────────
   // Permanent = PKWTT tanpa tanggal berakhir; contract/probation = PKWT berjangka.
   let contractCount = 0;
-  for (const [nama, nip, , , deptCode, jabatan, status, , , joinOffset] of EMPLOYEES) {
+  const { rows: branchRows } = await c.query(
+    `SELECT code, name FROM configuration.branches WHERE company_id = $1`,
+    [scope.company_id]
+  );
+  const branchName = new Map(branchRows.map((r) => [r.code, r.name]));
+  for (const [nama, nip, , , deptCode, jabatan, status, , , joinOffset, lokasi] of EMPLOYEES) {
     const empId = employeeIds.get(nip);
     if (!empId) continue;
     // Constraint pkwt_no_probation menegakkan aturan ketenagakerjaan: masa
@@ -124,7 +135,7 @@ runSeeder("Seeding demo HRIS", async (c, scope) => {
       `INSERT INTO hris.employment_contracts
          (employee_id, contract_number, contract_type, status, start_date, end_date,
           probation_end_date, sequence, position_title, department_name, work_location, notes)
-       VALUES ($1,$2,$3,'active',$4::date,$5::date,$6::date,1,$7,$8,'Paddy Bandung',$9)
+       VALUES ($1,$2,$3,'active',$4::date,$5::date,$6::date,1,$7,$8,$10,$9)
        ON CONFLICT (contract_number) DO UPDATE SET
          contract_type = EXCLUDED.contract_type,
          status = EXCLUDED.status,
@@ -133,12 +144,14 @@ runSeeder("Seeding demo HRIS", async (c, scope) => {
          probation_end_date = EXCLUDED.probation_end_date,
          position_title = EXCLUDED.position_title,
          department_name = EXCLUDED.department_name,
+         work_location = EXCLUDED.work_location,
          updated_at = NOW()`,
-      [empId, nomor, type, dayFrom(joinOffset), endDate, probationEnd, jabatan, deptCode, `Kontrak demo ${nama}`]
+      [empId, nomor, type, dayFrom(joinOffset), endDate, probationEnd, jabatan, deptCode, `Kontrak demo ${nama}`,
+       branchName.get(lokasi) ?? "Paddy Head Quarter"]
     );
     contractCount += 1;
   }
-  console.log(`  ✓ kontrak kerja ${contractCount} (PKWTT tanpa tanggal berakhir, PKWT 1 tahun)`);
+  console.log(`  ✓ kontrak kerja ${contractCount} (PKWTT tanpa tanggal berakhir, PKWT 1 tahun; lokasi kerja = cabang)`);
 
   return { shift: SHIFTS.length, karyawan: EMPLOYEES.length, kontrak: contractCount };
 });

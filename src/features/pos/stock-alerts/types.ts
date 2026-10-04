@@ -38,6 +38,8 @@ export interface PosProductStockAlert {
   current: number;
   min: number;
   alert_level: StockAlertLevel;
+  /** Nama toko — diisi untuk varian produk multi-toko (stok per toko). */
+  location?: string | null;
 }
 
 export interface StockAlertsSummary {

@@ -15,6 +15,8 @@ import {
   type MixedCheckoutItem,
 } from "@/lib/pos/create-mixed-checkout";
 import {
+  ALL_STORES_NEEDS_STALL_MESSAGE,
+  loadAllStoresProductIds,
   loadCentralCashierGate,
   loadPosProductWarehouseIds,
 } from "@/lib/pos/pos-sell-stall-server";
@@ -99,6 +101,14 @@ export async function POST(request: NextRequest) {
     }
 
     const productIds = items.map((item) => String(item.product_id || ""));
+    // Checkout gabungan antar-stall tidak punya satu toko → produk multi-toko
+    // harus dijual dari toko aktifnya sendiri.
+    if ((await loadAllStoresProductIds(productIds)).size > 0) {
+      return NextResponse.json(
+        { success: false, error: ALL_STORES_NEEDS_STALL_MESSAGE },
+        { status: 400 }
+      );
+    }
     const warehouseByProduct = await loadPosProductWarehouseIds(productIds);
     const scope = await getApiUserScope();
     const gate = await loadCentralCashierGate({

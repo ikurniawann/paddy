@@ -65,6 +65,8 @@ export type PosCatalogProduct = {
   sourceProductId: string | null;
   inventoryTracking: boolean;
   inventoryQuantity: number;
+  /** Multi-toko: "all" = dijual di semua toko, stok varian per toko */
+  storeScope: "stall" | "all";
   weightGram: number | null;
   /** Varian ber-SKU (Fase B); stok produk ber-varian = SUM stok SKU */
   merchSkus: PosMerchSku[];
@@ -90,6 +92,7 @@ export type ApiPosProduct = {
   source_product_id?: string | null;
   inventory_tracking?: boolean | null;
   inventory_quantity?: number | string | null;
+  store_scope?: string | null;
   weight_gram?: number | string | null;
   skus?: ApiPosProductSku[] | null;
   channels?: Array<{ channel_code?: string | null; is_distributed?: boolean | null }> | null;
@@ -127,6 +130,8 @@ export interface PatchPosProductPayload {
   source_product_id?: string | null;
   inventory_tracking?: boolean;
   inventory_quantity?: number;
+  /** Multi-toko: "all" = dijual di semua toko (stok per toko) */
+  store_scope?: "stall" | "all";
   weight_gram?: number | null;
   /** Fase D — upsert shop.product_channels channel 'web' */
   web_distributed?: boolean;

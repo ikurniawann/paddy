@@ -3,6 +3,10 @@ import { createPgClient } from "@/lib/pg/create-client";
 import { getPosSession } from '@/lib/api/auth';
 import { getApiUserScope } from '@/lib/api/scope';
 import { getStallAccess } from '@/lib/auth/stall-access';
+import {
+  claimMerchandiseStock,
+  restoreMerchandiseStock,
+} from '@/lib/pos/merchandise-stock';
 import { buildCostSnapshot, loadPosProductCostMap } from '@/lib/pos/purchasing-sync';
 import { checkProductPrivileges } from '@/lib/crm/product-privilege';
 import { normalizeGuestCount } from '@/lib/pos/guest-count';
@@ -24,7 +28,9 @@ import {
   shouldReuseUnpaidOpenBillCheckout,
 } from "@/lib/pos/table-sale-target";
 import {
+  ALL_STORES_NEEDS_STALL_MESSAGE,
   assertOrderItemsMatchSellStall,
+  loadAllStoresProductIds,
   loadCentralCashierGate,
   loadPosProductWarehouseIds,
   resolvePosSellStallForUser,
@@ -57,6 +63,7 @@ type OpenBillItem = {
   station?: string | null;
   kitchen_notes?: string | null;
   notes?: string | null;
+  sku_id?: string;
 };
 
 type OpenBillBody = {
@@ -146,7 +153,22 @@ export async function POST(request: NextRequest) {
     }
 
     const productIds = items.map((item) => String(item.product_id || ''));
-    const warehouseByProduct = await loadPosProductWarehouseIds(productIds);
+    // Produk multi-toko ikut toko jual aktif; tanpa toko aktif tidak bisa dijual.
+    const allStoresIds = await loadAllStoresProductIds(productIds);
+    let allStoresWarehouseId: string | null = null;
+    if (allStoresIds.size > 0) {
+      const sellStallForAll = await resolvePosSellStallForUser(sessionUserId);
+      if (!sellStallForAll.ok) {
+        return NextResponse.json(
+          { success: false, error: ALL_STORES_NEEDS_STALL_MESSAGE },
+          { status: 400 }
+        );
+      }
+      allStoresWarehouseId = sellStallForAll.warehouseId;
+    }
+    const warehouseByProduct = await loadPosProductWarehouseIds(productIds, {
+      allStoresWarehouseId,
+    });
     const itemWarehouses = productIds.map((id) => warehouseByProduct.get(id) ?? null);
     const scope = await getApiUserScope();
     const gate = await loadCentralCashierGate({
@@ -446,6 +468,21 @@ export async function POST(request: NextRequest) {
       ordered_at: new Date().toISOString(),
     };
 
+    // Stok merchandise diklaim saat open bill dibuat — sama seperti order
+    // langsung — supaya pembayaran QRIS/nanti tidak menjual stok yang sudah
+    // habis. Batal/void mengembalikan lewat restoreMerchandiseStockForOrder.
+    const merchClaimResult = await claimMerchandiseStock(db, items, {
+      warehouseId: sellWarehouseId,
+    });
+    if (!merchClaimResult.ok) {
+      return NextResponse.json(
+        { success: false, error: merchClaimResult.reason },
+        { status: merchClaimResult.status }
+      );
+    }
+    const merchClaims = merchClaimResult.claims;
+    const merchClaimedIds = new Set(merchClaims.map((claim) => claim.productId));
+
     let { data: orderData, error: orderErr } = await db
       .from('pos_orders')
       .insert(orderPayload)
@@ -465,6 +502,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (orderErr || !orderData) {
+      await restoreMerchandiseStock(db, merchClaims);
       console.error('Open bill insert error:', orderErr);
       return NextResponse.json({ success: false, error: orderErr?.message || 'Failed to create order' }, { status: 500 });
     }
@@ -536,6 +574,10 @@ export async function POST(request: NextRequest) {
         station: normalizeStation(item.station, productName, kitchenNotes),
         kitchen_status: 'pending',
         kitchen_notes: kitchenNotes || null,
+        sku_id: item.sku_id || null,
+        inventory_deducted: item.product_id
+          ? merchClaimedIds.has(String(item.product_id))
+          : false,
         ...costSnapshot,
       };
     });
@@ -569,6 +611,7 @@ export async function POST(request: NextRequest) {
       itemsErr = legacyResult.error;
     }
     if (itemsErr) {
+      await restoreMerchandiseStock(db, merchClaims);
       console.error('Open bill items error:', itemsErr);
       // Best-effort: we leave the order without items rather than crashing
       return NextResponse.json({ success: false, error: itemsErr.message }, { status: 500 });

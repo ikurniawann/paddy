@@ -73,6 +73,8 @@ type MerchFormState = {
   stock: string;
   weightGram: string;
   webDistributed: boolean;
+  /** Multi-toko: "all" = dijual di semua toko, stok varian per toko */
+  storeScope: 'stall' | 'all';
 };
 
 // EPIC-039 Fase B — baris editor varian SKU (persisted bila id terisi)
@@ -153,6 +155,7 @@ export function ProductsPage() {
     stock: '',
     weightGram: '',
     webDistributed: false,
+    storeScope: 'stall',
   });
   const [merchSkuRows, setMerchSkuRows] = useState<MerchSkuRow[]>([]);
 
@@ -399,6 +402,7 @@ export function ProductsPage() {
       stock: String(product.inventoryQuantity ?? 0),
       weightGram: product.weightGram === null ? '' : String(product.weightGram),
       webDistributed: product.webDistributed,
+      storeScope: product.storeScope,
     });
     setMerchSkuRows(
       product.merchSkus.map((sku) => ({
@@ -652,6 +656,11 @@ export function ProductsPage() {
       }
     }
 
+    // Produk multi-toko: stok varian diatur per toko (halaman Stok per Toko).
+    // Stok total di dialog ini bisa basi, jadi tidak ikut dikirim — menulis
+    // total lama akan tercatat sebagai koreksi palsu di lokasi utama.
+    const multiStore = merchModalProduct.storeScope === 'all';
+
     setSavingProductId(merchModalProduct.id);
     try {
       // Sinkronkan varian dulu: hapus → ubah/buat (urutan aman utk kode unik)
@@ -666,7 +675,7 @@ export function ProductsPage() {
           name: row.name.trim(),
           barcode: row.barcode.trim() || null,
           price_override: row.price.trim() === '' ? null : Number(row.price),
-          stock_quantity: Number(row.stock),
+          ...(multiStore ? {} : { stock_quantity: Number(row.stock) }),
           is_active: row.active,
         };
         if (row.id) {
@@ -682,12 +691,21 @@ export function ProductsPage() {
         id: merchModalProduct.id,
         payload: {
           source_product_id: merchForm.sourceProductId || null,
-          inventory_quantity: stockNumber,
+          ...(multiStore ? {} : { inventory_quantity: stockNumber }),
           inventory_tracking: true,
           weight_gram: weightNumber,
           web_distributed: merchForm.webDistributed,
         },
       });
+
+      // Mode toko diubah terakhir: saat diaktifkan, semua varian (termasuk
+      // yang baru dibuat di atas) mendapat stok awal di lokasi utama.
+      if (merchForm.storeScope !== merchModalProduct.storeScope) {
+        await patchProductMutation.mutateAsync({
+          id: merchModalProduct.id,
+          payload: { store_scope: merchForm.storeScope },
+        });
+      }
 
       toast.success('Pengaturan merchandise tersimpan');
       setMerchModalProduct(null);
@@ -1058,6 +1076,41 @@ export function ProductsPage() {
               Tampilkan di toko online (katalog web)
             </label>
 
+            {/* Multi-toko — satu produk & barcode untuk semua toko, stok per toko */}
+            {merchModalProduct?.productKind === 'merchandise' ? (
+              <div className="rounded-lg border border-pink-100 bg-pink-50/40 p-3">
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={merchForm.storeScope === 'all'}
+                    onChange={(event) =>
+                      setMerchForm((prev) => ({
+                        ...prev,
+                        storeScope: event.target.checked ? 'all' : 'stall',
+                      }))
+                    }
+                    className="h-4 w-4 rounded border-gray-300 text-pink-600"
+                  />
+                  Jual di semua toko (stok per toko)
+                </label>
+                <p className="mt-1 text-xs text-gray-500">
+                  {merchModalProduct.storeScope === 'all' ? (
+                    <>
+                      Stok varian dihitung per toko — atur di{' '}
+                      <a href="/dashboard/pos/store-stock" className="font-medium text-pink-700 underline">
+                        Stok per Toko
+                      </a>{' '}
+                      atau pindahkan lewat Transfer Stok Toko.
+                    </>
+                  ) : merchForm.storeScope === 'all' ? (
+                    'Saat disimpan, stok varian sekarang menjadi stok lokasi utama (stall katalog induk); toko lain mulai dari 0 dan diisi lewat transfer.'
+                  ) : (
+                    'Produk muncul di kasir setiap toko; penjualan memotong stok toko tempat transaksi.'
+                  )}
+                </p>
+              </div>
+            ) : null}
+
             {/* EPIC-047 Fase 1A — Matriks Varian: chip input per sumbu -> auto-generate SKU */}
             {merchModalProduct?.productKind === 'merchandise' ? (
               <div className="space-y-3 rounded-lg border border-indigo-100 bg-indigo-50/40 p-3">
@@ -1279,10 +1332,18 @@ export function ProductsPage() {
                           />
                         </div>
                         <div>
-                          <label className="mb-1 block text-xs text-gray-500">Stok</label>
+                          <label className="mb-1 block text-xs text-gray-500">
+                            {merchModalProduct?.storeScope === 'all' ? 'Stok (total toko)' : 'Stok'}
+                          </label>
                           <Input
                             type="number"
                             value={row.stock}
+                            disabled={merchModalProduct?.storeScope === 'all'}
+                            title={
+                              merchModalProduct?.storeScope === 'all'
+                                ? 'Atur stok per toko di halaman Stok per Toko'
+                                : undefined
+                            }
                             onChange={(event) =>
                               updateMerchSkuRow(row.rowId, { stock: event.target.value })
                             }

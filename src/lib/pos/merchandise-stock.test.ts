@@ -87,3 +87,75 @@ describe("claimMerchandiseStock — pengelompokan klaim (EPIC-047 Fase 1C)", () 
     expect(calls).toHaveLength(0);
   });
 });
+
+// Multi-toko (stok per toko): klaim membawa toko transaksi → RPC *_at.
+describe("claimMerchandiseStock — multi-toko", () => {
+  it("varian + warehouseId → RPC pos_sell_merchandise_sku_stock_at dengan toko", async () => {
+    const { db, calls } = fakeDb({ data: { success: true }, error: null });
+
+    const result = await claimMerchandiseStock(
+      db,
+      [{ product_id: "product-1", sku_id: "sku-1", quantity: 2 }],
+      { warehouseId: "toko-pvj" }
+    );
+
+    expect(result.ok).toBe(true);
+    expect(calls).toEqual([
+      {
+        name: "pos_sell_merchandise_sku_stock_at",
+        params: { p_sku_id: "sku-1", p_warehouse_id: "toko-pvj", p_qty: 2 },
+      },
+    ]);
+  });
+
+  it("warehouseByProduct menang atas warehouseId (checkout multi-stall)", async () => {
+    const { db, calls } = fakeDb({ data: { success: true }, error: null });
+
+    await claimMerchandiseStock(
+      db,
+      [
+        { product_id: "product-1", sku_id: "sku-1", quantity: 1 },
+        { product_id: "product-2", sku_id: "sku-2", quantity: 1 },
+      ],
+      { warehouseId: "default", warehouseByProduct: new Map([["product-2", "stall-b"]]) }
+    );
+
+    const byProduct = Object.fromEntries(calls.map((c) => [c.params.p_sku_id, c.params.p_warehouse_id]));
+    expect(byProduct).toEqual({ "sku-1": "default", "sku-2": "stall-b" });
+  });
+
+  it("produk tanpa varian tetap klaim level produk walau ada toko", async () => {
+    const { db, calls } = fakeDb({ data: { success: true }, error: null });
+
+    await claimMerchandiseStock(db, [{ product_id: "product-3", quantity: 1 }], {
+      warehouseId: "toko-pvj",
+    });
+
+    expect(calls[0].name).toBe("pos_sell_merchandise_stock");
+  });
+
+  it("stok toko kurang → pesan menyebut sisa stok di toko ini", async () => {
+    const rpc = vi.fn(async () => ({
+      data: { success: false, reason: "insufficient_stock", quantity_available: 1 },
+      error: null,
+    }));
+    const from = vi.fn(() => ({
+      select: () => ({
+        eq: () => ({ maybeSingle: async () => ({ data: { name: "Paddywatch Nea" } }) }),
+      }),
+    }));
+    const db = { rpc, from } as unknown as DbClient;
+
+    const result = await claimMerchandiseStock(
+      db,
+      [{ product_id: "product-1", sku_id: "sku-1", quantity: 3 }],
+      { warehouseId: "toko-pvj" }
+    );
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.status).toBe(400);
+      expect(result.reason).toContain("di toko ini tinggal 1");
+    }
+  });
+});

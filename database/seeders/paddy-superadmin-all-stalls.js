@@ -83,12 +83,15 @@ async function main() {
     const scope = await resolveSeedBusinessScope(c);
 
     const { rows: stalls } = await c.query(
-      `SELECT id, code, name FROM configuration.warehouses
-       WHERE branch_id = $1 AND is_active
-       ORDER BY created_at`,
-      [scope.branch_id]
+      // Semua stall aktif di seluruh cabang company (HQ + toko) — super admin
+      // unscoped bisa berpindah ke toko mana pun.
+      `SELECT w.id, w.code, w.name FROM configuration.warehouses w
+       JOIN configuration.branches b ON b.id = w.branch_id AND b.is_active
+       WHERE b.company_id = $1 AND w.is_active
+       ORDER BY b.created_at, w.created_at`,
+      [scope.company_id]
     );
-    if (stalls.length === 0) throw new Error("Belum ada stall aktif pada cabang ini.");
+    if (stalls.length === 0) throw new Error("Belum ada stall aktif pada company ini.");
 
     const email = argValue("email");
     const { rows: admins } = await c.query(

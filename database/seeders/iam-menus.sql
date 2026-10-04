@@ -298,4 +298,6 @@ WHERE deleted_at IS NULL
     -- GoFood / GoBiz (EPIC-049, 12 Sep 2026):
     'pos.operations.gofood',
     -- Tagihan Member (1 Okt 2026):
-    'pos.operations.member-bills');
+    'pos.operations.member-bills',
+    -- Multi-toko: stok per toko & transfer stok (4 Okt 2026):
+    'pos.catalog.store-stock', 'pos.catalog.stock-transfers');

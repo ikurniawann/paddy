@@ -7,6 +7,8 @@ import {
   buildMerchandiseColumns,
   type MerchandiseFieldsPayload,
 } from '@/lib/pos/merchandise-fields';
+import { normalizeStoreScope } from '@/lib/pos/store-stock';
+import { setProductStoreScope, StoreStockError } from '@/lib/pos/store-stock-server';
 
 type ProductUpdatePayload = MerchandiseFieldsPayload & {
   xp?: number | string;
@@ -96,8 +98,55 @@ export async function PATCH(
     const rawWebDistributed = (body as { web_distributed?: unknown }).web_distributed;
     const hasWebDistributedUpdate = rawWebDistributed !== undefined;
 
-    if (!hasXpUpdate && !hasStationUpdate && !hasActiveUpdate && !hasAvailableUpdate && !hasMinXpUpdate && !hasMerchUpdate && !hasWebDistributedUpdate && !hasSalesChannelsUpdate) {
+    // Multi-toko: 'all' = dijual di semua toko dengan stok per toko.
+    const rawStoreScope = (body as { store_scope?: unknown }).store_scope;
+    const hasStoreScopeUpdate = rawStoreScope !== undefined;
+    const storeScope = hasStoreScopeUpdate ? normalizeStoreScope(rawStoreScope) : null;
+    if (hasStoreScopeUpdate && !storeScope) {
+      return NextResponse.json({ success: false, error: 'Mode toko tidak valid' }, { status: 400 });
+    }
+
+    const hasFieldUpdate = hasXpUpdate || hasStationUpdate || hasActiveUpdate || hasAvailableUpdate || hasMinXpUpdate || hasMerchUpdate || hasWebDistributedUpdate || hasSalesChannelsUpdate;
+    if (!hasFieldUpdate && !hasStoreScopeUpdate) {
       return NextResponse.json({ success: false, error: 'No product fields to update' }, { status: 400 });
+    }
+
+    if (storeScope) {
+      const current = await query<{ store_scope: string; product_kind: string | null }>(
+        `SELECT store_scope, product_kind FROM pos.pos_products WHERE id = $1`,
+        [id]
+      );
+      if (!current[0]) {
+        return NextResponse.json({ success: false, error: 'Produk tidak ditemukan' }, { status: 404 });
+      }
+      if (storeScope === 'all' && current[0].product_kind !== 'merchandise') {
+        return NextResponse.json(
+          { success: false, error: 'Hanya produk merchandise yang bisa dijual di semua toko' },
+          { status: 400 }
+        );
+      }
+      if (current[0].store_scope !== storeScope) {
+        try {
+          await setProductStoreScope(id, storeScope, sessionUserId);
+        } catch (scopeError) {
+          if (scopeError instanceof StoreStockError) {
+            return NextResponse.json({ success: false, error: scopeError.message }, { status: scopeError.status });
+          }
+          throw scopeError;
+        }
+      }
+      if (!hasFieldUpdate) {
+        const { data: refreshed, error: refreshError } = await db
+          .from('pos_products')
+          .select('*')
+          .eq('id', id)
+          .single();
+        if (refreshError) throw refreshError;
+        return NextResponse.json({
+          success: true,
+          data: refreshed ? withProductXpAlias(refreshed as Record<string, unknown>) : null,
+        });
+      }
     }
 
     if (hasWebDistributedUpdate) {

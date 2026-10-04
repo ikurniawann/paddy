@@ -9,8 +9,24 @@
 
 import type { DbClient } from "@/lib/pg/types";
 
-/** skuId terisi = klaim per varian (Fase B); kosong = stok flat produk. */
-export type MerchStockClaim = { productId: string; skuId?: string | null; qty: number };
+/**
+ * skuId terisi = klaim per varian (Fase B); kosong = stok flat produk.
+ * warehouseId = toko tempat transaksi; varian produk multi-toko memotong stok
+ * toko itu (pos_sku_stock_locations), varian biasa tetap memakai stok global.
+ */
+export type MerchStockClaim = {
+  productId: string;
+  skuId?: string | null;
+  qty: number;
+  warehouseId?: string | null;
+};
+
+export type MerchClaimOptions = {
+  /** Toko (stall) transaksi untuk semua baris. */
+  warehouseId?: string | null;
+  /** Toko per produk (checkout multi-stall); menang atas warehouseId. */
+  warehouseByProduct?: Map<string, string | null>;
+};
 
 export type MerchOrderItemInput = {
   product_id?: string | null;
@@ -24,26 +40,33 @@ type SellStockResult = {
   restored?: boolean;
   reason?: string;
   quantity_after?: number;
+  /** Stok tersisa di toko saat klaim multi-toko ditolak. */
+  quantity_available?: number;
 };
 
 type ClaimResult =
   | { ok: true; claims: MerchStockClaim[] }
   | { ok: false; status: number; reason: string };
 
-function aggregateByProduct(items: MerchOrderItemInput[]): MerchStockClaim[] {
+function aggregateByProduct(
+  items: MerchOrderItemInput[],
+  options: MerchClaimOptions = {}
+): MerchStockClaim[] {
   const totals = new Map<string, MerchStockClaim>();
   for (const item of items) {
     const productId = String(item.product_id || "");
     const skuId = item.sku_id ? String(item.sku_id) : null;
     const qty = Number(item.quantity) || 0;
     if (!productId || qty <= 0) continue;
+    const warehouseId =
+      options.warehouseByProduct?.get(productId) ?? options.warehouseId ?? null;
 
-    const key = `${productId}::${skuId ?? ""}`;
+    const key = `${productId}::${skuId ?? ""}::${warehouseId ?? ""}`;
     const existing = totals.get(key);
     if (existing) {
       totals.set(key, { ...existing, qty: existing.qty + qty });
     } else {
-      totals.set(key, { productId, skuId, qty });
+      totals.set(key, { productId, skuId, qty, warehouseId });
     }
   }
   return Array.from(totals.values());
@@ -55,6 +78,14 @@ async function sellStockRpc(
   claim: MerchStockClaim,
   qty: number
 ): Promise<{ data: SellStockResult | null; error: { message?: string } | null }> {
+  if (claim.skuId && claim.warehouseId) {
+    const { data, error } = await db.rpc("pos_sell_merchandise_sku_stock_at", {
+      p_sku_id: claim.skuId,
+      p_warehouse_id: claim.warehouseId,
+      p_qty: qty,
+    });
+    return { data: (data ?? null) as SellStockResult | null, error };
+  }
   if (claim.skuId) {
     const { data, error } = await db.rpc("pos_sell_merchandise_sku_stock", {
       p_sku_id: claim.skuId,
@@ -75,9 +106,10 @@ async function sellStockRpc(
  */
 export async function claimMerchandiseStock(
   db: DbClient,
-  items: MerchOrderItemInput[]
+  items: MerchOrderItemInput[],
+  options: MerchClaimOptions = {}
 ): Promise<ClaimResult> {
-  const targets = aggregateByProduct(items);
+  const targets = aggregateByProduct(items, options);
   const claims: MerchStockClaim[] = [];
 
   for (const target of targets) {
@@ -108,6 +140,13 @@ export async function claimMerchandiseStock(
           ok: false,
           status: 400,
           reason: `Varian ${name} tidak ditemukan/nonaktif — muat ulang katalog`,
+        };
+      }
+      if (target.warehouseId && result.quantity_available != null) {
+        return {
+          ok: false,
+          status: 400,
+          reason: `Stok ${name} di toko ini tinggal ${Number(result.quantity_available)} — cek stok toko lain atau minta transfer`,
         };
       }
       return {
@@ -150,6 +189,14 @@ export async function restoreMerchandiseStockForOrder(
   db: DbClient,
   orderId: string
 ): Promise<void> {
+  // Stok multi-toko dikembalikan ke toko tempat order dibuat.
+  const { data: order } = await db
+    .from("pos_orders")
+    .select("warehouse_id")
+    .eq("id", orderId)
+    .maybeSingle();
+  const warehouseId = (order as { warehouse_id?: string | null } | null)?.warehouse_id ?? null;
+
   const { data: rows, error } = await db
     .from("pos_order_items")
     .select("id, product_id, sku_id, quantity")
@@ -168,7 +215,7 @@ export async function restoreMerchandiseStockForOrder(
 
     const { error: restoreError } = await sellStockRpc(
       db,
-      { productId: row.product_id, skuId: row.sku_id ?? null, qty },
+      { productId: row.product_id, skuId: row.sku_id ?? null, qty, warehouseId },
       -qty
     );
     if (restoreError) {

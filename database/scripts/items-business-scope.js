@@ -1,7 +1,9 @@
-const HOLDING_CODE = process.env.SEED_HOLDING_CODE || "PROLOGE";
-const COMPANY_CODE = process.env.SEED_COMPANY_CODE || "SULU";
-const BRANCH_CODE = process.env.SEED_BRANCH_CODE || "SULU-DAGO";
-const BRANCH_NAME = process.env.SEED_BRANCH_NAME || "Dago";
+// Default scope seeder = Paddy HQ (lihat database/seeders/paddy-business-structure.js).
+// Seeder master/demo menulis ke HQ; toko memakai katalog yang sama (produk multi-toko).
+const HOLDING_CODE = process.env.SEED_HOLDING_CODE || "CKK";
+const COMPANY_CODE = process.env.SEED_COMPANY_CODE || "PADDY";
+const BRANCH_CODE = process.env.SEED_BRANCH_CODE || "PADDY-HQ";
+const BRANCH_NAME = process.env.SEED_BRANCH_NAME || "Paddy Head Quarter";
 
 async function resolveSeedBusinessScope(client) {
   const { rows } = await client.query(

@@ -21,6 +21,10 @@
  *   - pos.pos_inventory_settings                stok tidak boleh minus, ambang stok menipis
  *   - pos.pos_product_images                    foto produk (public/products/paddy)
  *   - inventory.finished_goods_inventory        stok awal per produk (= SUM varian)
+ *   - pos.pos_sku_stock_locations (+movements)  MULTI-TOKO: semua produk store_scope='all';
+ *     stok tiap varian disebar ke Gudang Pusat HQ + toko (paddy-business-structure.js):
+ *     gudang porsi terbesar, flagship sedang, toko mall kecil (beberapa sengaja 0
+ *     supaya peringatan stok per toko terlihat). Prasyarat: paddy-structure.
  *
  * Idempotent & "replace": upsert per SKU; produk/kategori yang tidak ada di
  * katalog dinonaktifkan (bukan dihapus) supaya transaksi lama tetap utuh.
@@ -52,6 +56,80 @@ const UNITS = [
 const FNB_UNITS = ["CUP", "PORSI", "SLICE", "TBSP", "TSP", "BUTIR", "GAL", "IKAT", "SACK", "TRAY", "BKS", "SACHET", "OZ"];
 
 const LOW_STOCK_THRESHOLD = 3;
+
+/** Hash stabil — sebaran stok per lokasi sama persis tiap seeder dijalankan. */
+function hash(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return Math.abs(h);
+}
+
+/** Stok awal varian per jenis lokasi (gudang | flagship | mall). */
+function seedQty(sku, location) {
+  const h = hash(`${sku}@${location.code}`);
+  if (location.kind === "hq") return 8 + (h % 25);
+  if (location.kind === "flagship") return 3 + (h % 10);
+  return h % 10 === 0 ? 0 : 1 + (h % 7);
+}
+
+/** Lokasi stok aktif = stall pertama tiap cabang di struktur bisnis. */
+async function loadStockLocations(c, companyId) {
+  const { LOCATIONS } = require("./paddy-business-structure");
+  const { rows } = await c.query(
+    `SELECT b.code AS branch_code, w.id, w.code, w.name
+     FROM configuration.branches b
+     JOIN configuration.warehouses w ON w.branch_id = b.id AND w.is_active
+     WHERE b.company_id = $1 AND b.is_active`,
+    [companyId]
+  );
+  const out = [];
+  for (const loc of LOCATIONS) {
+    const stall = rows.find((r) => r.branch_code === loc.code && r.code === loc.stalls[0].code);
+    if (stall) out.push({ id: stall.id, code: loc.code, name: stall.name, kind: loc.kind });
+  }
+  if (!out.some((l) => l.kind === "hq")) {
+    throw new Error("Lokasi HQ belum ada — jalankan dulu: npm run db:seed:paddy-structure");
+  }
+  return out;
+}
+
+/**
+ * Jadikan produk multi-toko dan tulis stok awal per lokasi. Ditulis langsung
+ * (bukan lewat koreksi) supaya kartu stok berisi satu baris "Stok awal" per
+ * lokasi; dijalankan ulang → stok & kartu stok seed diganti, bukan ditumpuk.
+ */
+async function seedStoreStock(c, posId, skuIds, skuCodes, locations) {
+  await c.query(`UPDATE pos.pos_products SET store_scope = 'all', updated_at = NOW() WHERE id = $1`, [posId]);
+  let total = 0;
+  await c.query(`SELECT set_config('pos.sku_stock_sync', 'on', true)`);
+  await c.query(`DELETE FROM pos.pos_sku_stock_locations WHERE sku_id = ANY($1::uuid[])`, [skuIds]);
+  await c.query(
+    `DELETE FROM pos.pos_sku_stock_movements WHERE sku_id = ANY($1::uuid[]) AND reference_type = 'seed'`,
+    [skuIds]
+  );
+  for (const [i, skuId] of skuIds.entries()) {
+    for (const loc of locations) {
+      const qty = seedQty(skuCodes[i], loc);
+      total += qty;
+      await c.query(
+        `INSERT INTO pos.pos_sku_stock_locations (sku_id, warehouse_id, stock_quantity, min_stock)
+         VALUES ($1, $2, $3, $4)`,
+        [skuId, loc.id, qty, loc.kind === "hq" ? 5 : 2]
+      );
+      await c.query(
+        `INSERT INTO pos.pos_sku_stock_movements
+           (sku_id, warehouse_id, movement_type, qty_change, qty_after, reference_type, note)
+         VALUES ($1, $2, 'initial', $3, $3, 'seed', 'Stok awal (seeder)')`,
+        [skuId, loc.id, qty]
+      );
+    }
+    await c.query(`SELECT pos.pos_sync_sku_total($1)`, [skuId]);
+  }
+  return total;
+}
 
 async function upsertUnits(c, companyId) {
   for (const [kode, nama, tipe, deskripsi] of UNITS) {
@@ -189,6 +267,17 @@ runSeeder("Seeding katalog retail Paddy", async (c, scope) => {
   }
   console.log(`  ✓ kategori ${CATALOG.categories.length}`);
 
+  const locations = await loadStockLocations(c, scope.company_id);
+  console.log(`  ✓ lokasi stok: ${locations.map((l) => l.name).join(", ")}`);
+
+  // Stok ditulis ulang dari nol → transfer demo (paddy-demo-store-transfers.js)
+  // beserta kartu stoknya ikut dibuang; seeder transfer membuatnya lagi.
+  await c.query(
+    `DELETE FROM pos.pos_sku_stock_movements WHERE reference_type = 'stock_transfer'
+       AND reference_id IN (SELECT id FROM pos.pos_stock_transfers WHERE notes LIKE 'DEMO%')`
+  );
+  await c.query(`DELETE FROM pos.pos_stock_transfers WHERE notes LIKE 'DEMO%'`);
+
   const productSkus = [];
   const variantSkus = [];
   let variantCount = 0;
@@ -198,8 +287,6 @@ runSeeder("Seeding katalog retail Paddy", async (c, scope) => {
     const variants = hasVariants
       ? p.variants
       : [{ sku: `${p.sku}-STD`, name: "Standar", options: {}, barcode: p.barcode, stock: p.stock }];
-    const stock = variants.reduce((n, v) => n + v.stock, 0);
-    totalUnits += stock;
 
     const item = await c.query(UPSERT_ITEM_PRODUCT_SQL, [
       p.sku, p.name, p.description, p.category, pcsId, p.price, p.cost,
@@ -230,11 +317,16 @@ runSeeder("Seeding katalog retail Paddy", async (c, scope) => {
       await c.query(`INSERT INTO pos.pos_product_images (product_id, url, display_order) VALUES ($1, $2, 0)`, [posId, p.image]);
     }
 
+    // Upsert varian tanpa memicu routing stok multi-toko (stok ditulis ulang di bawah).
+    await c.query(`SELECT set_config('pos.sku_stock_sync', 'on', true)`);
+    const skuIds = [];
     for (const v of variants) {
-      await upsertSku(c, posId, v);
+      skuIds.push(await upsertSku(c, posId, v));
       variantSkus.push(v.sku.toLowerCase());
       variantCount += 1;
     }
+    const stock = await seedStoreStock(c, posId, skuIds, variants.map((v) => v.sku), locations);
+    totalUnits += stock;
 
     await c.query(
       `INSERT INTO inventory.finished_goods_inventory (product_id, qty_available, unit_cost, last_movement_at, is_active)
@@ -286,6 +378,7 @@ runSeeder("Seeding katalog retail Paddy", async (c, scope) => {
     kategori: CATALOG.categories.length,
     produk: CATALOG.products.length,
     "SKU/varian": variantCount,
-    "total stok (pcs)": totalUnits,
+    "lokasi": locations.length,
+    "total stok semua lokasi (pcs)": totalUnits,
   };
 });

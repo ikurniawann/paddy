@@ -1525,7 +1525,9 @@ export async function createMixedCheckout(
   let merchClaims: MerchStockClaim[] = [];
   let merchClaimedIds = new Set<string>();
   if (isPaidSale) {
-    const merchClaimResult = await claimMerchandiseStock(db, input.items);
+    const merchClaimResult = await claimMerchandiseStock(db, input.items, {
+      warehouseByProduct: input.warehouseByProduct,
+    });
     if (!merchClaimResult.ok) {
       throw new MixedCheckoutError(merchClaimResult.reason, merchClaimResult.status);
     }
@@ -2021,7 +2023,9 @@ export async function completeMixedCheckout(
       const warehouseByProduct = new Map(
         Object.entries(snapshot.warehouseByProduct || {})
       );
-      const merchClaimResult = await claimMerchandiseStock(db, snapshot.items);
+      const merchClaimResult = await claimMerchandiseStock(db, snapshot.items, {
+        warehouseByProduct,
+      });
       if (!merchClaimResult.ok) {
         throw new MixedCheckoutError(merchClaimResult.reason, merchClaimResult.status);
       }

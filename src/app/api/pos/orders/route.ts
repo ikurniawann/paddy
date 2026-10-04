@@ -28,7 +28,9 @@ import {
   resolveOrderSoldFrom,
 } from '@/lib/pos/create-mixed-checkout';
 import {
+  ALL_STORES_NEEDS_STALL_MESSAGE,
   assertOrderItemsMatchSellStall,
+  loadAllStoresProductIds,
   loadCentralCashierGate,
   loadPosProductWarehouseIds,
   resolvePosSellStallForUser,
@@ -445,7 +447,22 @@ export async function POST(request: NextRequest) {
     if (arkBlocked) return arkBlocked;
 
     const productIds = items.map((item) => String(item.product_id || ''));
-    const warehouseByProduct = await loadPosProductWarehouseIds(productIds);
+    // Produk multi-toko ikut toko jual aktif; tanpa toko aktif tidak bisa dijual.
+    const allStoresIds = await loadAllStoresProductIds(productIds);
+    let allStoresWarehouseId: string | null = null;
+    if (allStoresIds.size > 0) {
+      const sellStallForAll = await resolvePosSellStallForUser(sessionUserId);
+      if (!sellStallForAll.ok) {
+        return NextResponse.json(
+          { success: false, error: ALL_STORES_NEEDS_STALL_MESSAGE },
+          { status: 400 }
+        );
+      }
+      allStoresWarehouseId = sellStallForAll.warehouseId;
+    }
+    const warehouseByProduct = await loadPosProductWarehouseIds(productIds, {
+      allStoresWarehouseId,
+    });
     const itemWarehouses = productIds.map((id) => warehouseByProduct.get(id) ?? null);
     const scope = await getApiUserScope();
     const gate = await loadCentralCashierGate({
@@ -1064,7 +1081,9 @@ export async function POST(request: NextRequest) {
     // EPIC-039 Fase A — klaim stok merchandise SEBELUM order dibuat
     // (decrement atomik ber-guard di SQL; dua kasir memperebutkan stok
     // terakhir → satu gagal). Produk non-merchandise dilewati fungsi SQL.
-    const merchClaimResult = await claimMerchandiseStock(db, items);
+    const merchClaimResult = await claimMerchandiseStock(db, items, {
+      warehouseId: sellWarehouseId,
+    });
     if (!merchClaimResult.ok) {
       if (promoOrderId) {
         await withTransaction((client) =>

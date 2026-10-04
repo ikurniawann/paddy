@@ -76,6 +76,7 @@ export function mapApiPosProduct(product: ApiPosProduct): PosCatalogProduct {
     sourceProductId: product.source_product_id || null,
     inventoryTracking: product.inventory_tracking === true,
     inventoryQuantity: toNumber(product.inventory_quantity),
+    storeScope: product.store_scope === "all" ? "all" : "stall",
     weightGram:
       product.weight_gram === null || product.weight_gram === undefined
         ? null

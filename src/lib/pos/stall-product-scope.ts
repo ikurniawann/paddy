@@ -17,6 +17,8 @@ export type StallProductScope =
       productIds: string[];
       warehouseIds: string[];
       activeMode?: ActiveStallMode;
+      /** Stall jual tunggal (bukan kasir pusat) — stok produk multi-toko dibaca di sini. */
+      sellWarehouseId?: string;
     };
 
 export async function loadProductIdsForWarehouses(
@@ -40,7 +42,12 @@ export async function loadProductIdsForWarehouses(
        AND p.deleted_at IS NULL
        AND p.is_active = true
        AND p.kode IS NOT NULL
-       AND btrim(p.kode) <> ''`,
+       AND btrim(p.kode) <> ''
+     UNION
+     -- Produk multi-toko ada di katalog setiap stall.
+     SELECT pp.id
+     FROM pos.pos_products pp
+     WHERE pp.store_scope = 'all'`,
     [warehouseIds]
   );
   return rows.map((row) => row.id);
@@ -92,7 +99,13 @@ export async function resolvePosProductStallScope(
 
   const warehouseIds = [sellStall.warehouseId];
   const productIds = await loadProductIdsForWarehouses(warehouseIds);
-  return { mode: "ids", productIds, warehouseIds, activeMode: gate.activeMode };
+  return {
+    mode: "ids",
+    productIds,
+    warehouseIds,
+    activeMode: gate.activeMode,
+    sellWarehouseId: sellStall.warehouseId,
+  };
 }
 
 export function applyStallScopeToProductIds(
