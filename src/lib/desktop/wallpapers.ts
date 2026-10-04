@@ -34,8 +34,9 @@ export const WALLPAPER_STORAGE_KEY = "arkiv-wallpaper";
  * localStorage/user_desktop_prefs — mengganti id akan mereset pilihan user.
  */
 export const BUILTIN_WALLPAPERS: WallpaperItem[] = [
-  { id: "arkiv", name: `${brandName()} Mono`, src: "/bg-paddy.webp" },
-  { id: "pink", name: "Graphite Dusk", src: "linear-gradient(135deg,#0b0b0b,#2b2b2b 45%,#161616)" },
+  { id: "arkiv", name: `${brandName()} Doodle Pink`, src: "/bg-paddy-doodle-pink.webp" },
+  { id: "pink", name: `${brandName()} Doodle Sunny`, src: "/bg-paddy-doodle-sunny.webp" },
+  { id: "lilac", name: `${brandName()} Doodle Lilac`, src: "/bg-paddy-doodle-lilac.webp" },
   { id: "midnight", name: "Midnight", src: "linear-gradient(135deg,#030712,#111827 52%,#1e1b4b)" },
   { id: "glass", name: "Glass Blue", src: "linear-gradient(135deg,#082f49,#0f172a 48%,#312e81)" },
 ];

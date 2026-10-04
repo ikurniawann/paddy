@@ -18,13 +18,13 @@ const SCAN_TARGETS = [
   "src/app/dashboard/(dashboard)/settings/appearance",
 ];
 
-// Tailwind pink defaults, the retired previous-brand blues, and the Paddy pink accent
-// (#e0156f). Paddy black (#111111) is not listed: it is too generic a neutral to
-// police; brand surfaces should still read it from --brand-primary.
-const BANNED_BRAND_HEX = /#(?:db2777|ec4899|be185d|ff00aa|1d1dcc|2941d3|3d5edc|e0156f|e3066f)\b/gi;
+// Tailwind pink defaults, the retired previous-brand blues, and the Paddy pinks
+// (#e3066f primary, #ec2a80 secondary, #e0156f retired accent). Brand surfaces
+// must read them from --brand-primary / --brand-secondary.
+const BANNED_BRAND_HEX = /#(?:db2777|ec4899|be185d|ff00aa|1d1dcc|2941d3|3d5edc|e0156f|e3066f|ec2a80)\b/gi;
 const SCANNED_EXTENSIONS = new Set([".css", ".js", ".jsx", ".mjs", ".ts", ".tsx"]);
 // Whole-file allowlist: theme preset defaults, anti-flash script, chart SSR fallbacks,
-// chart palettes, and company-appearance defaults (Paddy Mono preset).
+// chart palettes, and company-appearance defaults (Paddy Pink preset).
 const WHOLE_FILE_ALLOWLIST = new Set([
   "src/lib/theme/presets.ts",
   "src/components/providers/theme-script.tsx",
@@ -113,9 +113,9 @@ function isAllowedMatch(relativePath, line, _rawMatch) {
     return true;
   }
 
-  // Brand defaults in globals.css only (e.g. --brand-secondary: #e0156f).
+  // Brand defaults in globals.css only (e.g. --brand-primary: #e3066f).
   if (relativePath === GLOBALS_CSS) {
-    return /--brand-primary|--brand-secondary/.test(line);
+    return /--brand-primary|--brand-secondary|--color-pink-\d+|--sidebar-active-background/.test(line);
   }
 
   return false;

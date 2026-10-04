@@ -6,7 +6,7 @@ import { ApexChart } from "@/features/pos/reports/components/apex-chart";
 import type { AccountingDashboard } from "@/lib/accounting/dashboard-store";
 import { formatAmount } from "./report-shell";
 
-const FALLBACK_PRIMARY = "#111111";
+const FALLBACK_PRIMARY = "#e3066f";
 
 function useBrandPrimary() {
   const [color, setColor] = useState(FALLBACK_PRIMARY);

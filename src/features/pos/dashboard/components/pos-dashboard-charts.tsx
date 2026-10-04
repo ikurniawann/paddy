@@ -7,7 +7,7 @@ import { formatAmount } from "@/lib/purchasing/utils";
 import { ApexChart } from "@/features/pos/reports/components/apex-chart";
 import type { TopProduct, TrendPoint } from "../types";
 
-function useBrandPrimary(fallback = "#111111") {
+function useBrandPrimary(fallback = "#e3066f") {
   const [color, setColor] = useState(fallback);
   useEffect(() => {
     if (typeof window !== "undefined") {

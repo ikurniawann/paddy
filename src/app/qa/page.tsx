@@ -174,8 +174,8 @@ export default function QaReportPage() {
   const highIssues = issues.filter((item) => item.severity === "High").length;
 
   return (
-    <main className="min-h-screen bg-[#f6f6f6] text-slate-950">
-      <section className="relative overflow-hidden border-b border-pink-100 bg-[#f6f6f6]">
+    <main className="min-h-screen bg-[#fff5f9] text-slate-950">
+      <section className="relative overflow-hidden border-b border-pink-100 bg-[#fff3f8]">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(219,39,119,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(219,39,119,0.08)_1px,transparent_1px)] bg-[size:48px_48px]" />
         <div className="relative mx-auto grid max-w-7xl gap-8 px-5 py-8 md:px-8 lg:grid-cols-[1fr_380px] lg:py-12">
           <div className="flex flex-col justify-between gap-8">

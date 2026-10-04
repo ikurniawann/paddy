@@ -7,8 +7,8 @@ describe("THEME_PRESETS", () => {
   it("includes wonderland as the default with the current brand blue", () => {
     const wonderland = getPreset(DEFAULT_PRESET_ID);
     expect(wonderland).toBeDefined();
-    expect(wonderland!.primary).toBe("#111111");
-    expect(wonderland!.secondary).toBe("#e0156f");
+    expect(wonderland!.primary).toBe("#e3066f");
+    expect(wonderland!.secondary).toBe("#ec2a80");
   });
   it("has unique ids and valid hex values", () => {
     const ids = new Set<string>();
