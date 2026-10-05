@@ -60,3 +60,4 @@ Keputusan owner:
   - Label pesanan publik untuk ambil di toko diselaraskan dengan admin: Siap diambil → Sudah diambil, tanpa tahap "dikirim".
   - Data uji dihapus dan stok dipulihkan.
 - 2026-10-05 — Gate: vitest 304 file / 2468+ test lulus (termasuk `src/lib/store/types.test.ts`, `src/features/store/lib/store-lib.test.ts`, `src/proxy.test.ts`); tsc 508 = baseline; brand check OK; eslint storefront 0 error.
+- 2026-10-05 — Ingress cloudflared `shop-paddy.reddie.id` aktif (owner). Smoke test live: route toko 200, `/dashboard` dan `/login` 404 di host toko; browser headless: pencarian header → `/shop?q=nea`, tambah ke keranjang → keranjang → checkout (opsi ambil di toko tampil), 0 tautan `/store`, tanpa error console/halaman.
