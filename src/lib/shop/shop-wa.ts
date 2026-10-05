@@ -9,6 +9,8 @@ export interface ShopOrderWaInput {
   customerPhone: string;
   total: number;
   accessToken: string;
+  /** Pesanan website toko (EPIC-054) → tautan status di host toko. */
+  storeOrder?: boolean;
 }
 
 function formatRp(value: number): string {
@@ -30,8 +32,7 @@ export async function sendShopOrderShippedWa(
     return { success: false, reason: "gateway-belum-dikonfigurasi" };
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-  const statusUrl = `${baseUrl}/shop/order/${order.accessToken}`;
+  const statusUrl = shopOrderStatusUrl(order.accessToken, order.storeOrder);
   const message =
     `*Pesanan dikirim* 📦\n\n` +
     `Order: *${order.orderNumber}*\n` +
@@ -58,8 +59,7 @@ export async function sendShopOrderPaidWa(
     return { success: false, reason: "gateway-belum-dikonfigurasi" };
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-  const statusUrl = `${baseUrl}/shop/order/${order.accessToken}`;
+  const statusUrl = shopOrderStatusUrl(order.accessToken, order.storeOrder);
   const message =
     `*Pembayaran diterima* ✅\n\n` +
     `Order: *${order.orderNumber}*\n` +
@@ -75,4 +75,18 @@ export async function sendShopOrderPaidWa(
     console.error(`[shop] WA konfirmasi gagal: order=${order.orderNumber}: ${result.reason}`);
   }
   return result;
+}
+
+/**
+ * Tautan halaman status pesanan. Pesanan website toko (EPIC-054) dibuka di
+ * host toko (STORE_PUBLIC_URL, mis. https://shop-paddy.reddie.id/order/…);
+ * pesanan storefront lama tetap di /shop/order/… pada domain aplikasi.
+ */
+export function shopOrderStatusUrl(accessToken: string, storeOrder = false): string {
+  const storeUrl = (process.env.STORE_PUBLIC_URL || "").replace(/\/+$/, "");
+  if (storeOrder) {
+    const base = storeUrl || `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/store`;
+    return `${base}/order/${accessToken}`;
+  }
+  return `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/shop/order/${accessToken}`;
 }

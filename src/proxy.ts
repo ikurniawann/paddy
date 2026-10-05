@@ -32,8 +32,47 @@ function isMemberHost(hostHeader: string): boolean {
   return hostname.split(".").includes("member");
 }
 
+/**
+ * Website toko publik (EPIC-054) di hostname sendiri, mis. shop-paddy.reddie.id.
+ * Daftar host dari env STORE_HOSTS (runtime, dipisah koma). Halaman tinggal di
+ * src/app/(store)/store; host toko melihatnya di root (/, /shop, /product/…).
+ * ERP (dashboard/login) tidak bisa diakses lewat host toko — rewrite ke
+ * /store/* membuatnya 404.
+ */
+export function isStoreHost(hostHeader: string, configured = process.env.STORE_HOSTS ?? ""): boolean {
+  const hostname = hostHeader.split(":")[0].toLowerCase();
+  return configured
+    .split(",")
+    .map((h) => h.trim().toLowerCase())
+    .filter(Boolean)
+    .includes(hostname);
+}
+
+/** Path host toko yang TIDAK di-rewrite: API, aset Next, dan file statis public/. */
+export function isStorePassthroughPath(pathname: string): boolean {
+  return (
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/_next/") ||
+    /\.[a-z0-9]{2,5}$/i.test(pathname)
+  );
+}
+
+function rewriteStoreHost(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  if (isStorePassthroughPath(pathname)) {
+    return pathname.startsWith("/api/") ? updateSession(request) : NextResponse.next();
+  }
+  const url = request.nextUrl.clone();
+  url.pathname = pathname === "/" ? "/store" : `/store${pathname}`;
+  // Halaman toko membuat tautan tanpa prefix /store di host toko.
+  const headers = new Headers(request.headers);
+  headers.set("x-store-base", "");
+  return NextResponse.rewrite(url, { request: { headers } });
+}
+
 export async function proxy(request: NextRequest) {
   const host = request.headers.get("host") ?? "";
+  if (isStoreHost(host)) return rewriteStoreHost(request);
   if (!isMemberHost(host)) return updateSession(request);
 
   const { pathname } = request.nextUrl;

@@ -5,16 +5,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { queryOne } from '@/lib/db';
-import { createPgClient } from '@/lib/pg/create-client';
 import { checkRateLimit, clientIpFrom } from '@/lib/public/rate-limit';
 import { isValidWebhookToken } from '@/lib/xendit/client';
-import { syncPosCustomerOrderStats } from '@/lib/crm/loyalty-engine';
 import {
   SHOP_INVOICE_PREFIX,
-  commitOrderReservations,
   releaseOrderReservations,
 } from '@/lib/shop/storefront-server';
-import { sendShopOrderPaidWa } from '@/lib/shop/shop-wa';
+import { afterShopOrderPaid, type PaidShopOrder } from '@/lib/shop/order-paid';
 
 const callbackSchema = z.object({
   id: z.string(),
@@ -68,18 +65,11 @@ export async function POST(request: NextRequest) {
       }
 
       // Idempoten: hanya transisi pending → paid yang memproses efek samping
-      const updated = await queryOne<{
-        id: string;
-        order_number: string;
-        access_token: string;
-        customer_name: string;
-        customer_phone: string;
-        total: string;
-      }>(
+      const updated = await queryOne<PaidShopOrder>(
         `UPDATE shop.orders
          SET status = 'paid', paid_at = COALESCE(paid_at, now()), updated_at = now()
          WHERE id = $1::uuid AND status = 'pending'
-         RETURNING id, order_number, access_token, customer_name, customer_phone, total`,
+         RETURNING id, order_number, access_token, customer_name, customer_phone, total, shipping_method`,
         [orderId]
       );
       if (!updated) {
@@ -87,43 +77,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, already_processed: true });
       }
 
-      await commitOrderReservations(orderId);
-
-      // Tautkan member CRM by nomor WA (keputusan owner: member sejak awal).
-      // Catatan kebijakan: XP hanya utk pembayaran ARK Coin (EPIC-011) —
-      // order Xendit menaikkan statistik kunjungan/belanja, TANPA XP.
-      try {
-        const db = createPgClient();
-        const phone = updated.customer_phone.replace(/\D/g, '');
-        if (phone.length >= 8) {
-          const member = await queryOne<{ id: string }>(
-            `SELECT id FROM pos.pos_customers
-             WHERE regexp_replace(COALESCE(phone, ''), '\\D', '', 'g') LIKE '%' || $1
-             LIMIT 1`,
-            [phone.slice(-10)]
-          );
-          if (member) {
-            await queryOne(
-              'UPDATE shop.orders SET customer_id = $2::uuid WHERE id = $1::uuid RETURNING id',
-              [orderId, member.id]
-            );
-            await syncPosCustomerOrderStats(db, member.id, Number(updated.total) || 0);
-          }
-        }
-      } catch (memberErr) {
-        console.error(`[shop] member link failed: order=${orderId}:`, memberErr);
-      }
-
-      // WA konfirmasi best-effort — gagal WA ≠ gagal webhook
-      void sendShopOrderPaidWa({
-        orderNumber: updated.order_number,
-        customerName: updated.customer_name,
-        customerPhone: updated.customer_phone,
-        total: Number(updated.total) || 0,
-        accessToken: updated.access_token,
-      }).catch((waErr) =>
-        console.error(`[shop] WA paid failed: order=${orderId}:`, waErr)
-      );
+      // Commit stok, tautkan member, WA konfirmasi (lib/shop/order-paid).
+      await afterShopOrderPaid(updated);
 
       return NextResponse.json({ success: true });
     }

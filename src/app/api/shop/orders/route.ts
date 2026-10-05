@@ -33,7 +33,9 @@ export async function GET(request: NextRequest) {
       `SELECT o.id, o.order_number, o.status, o.customer_name, o.customer_phone,
               o.shipping_area_label, o.courier_code, o.courier_service,
               o.subtotal, o.shipping_cost, o.total, o.waybill, o.paid_at,
-              o.created_at, o.customer_id,
+              o.created_at, o.customer_id, o.source_channel, o.payment_method, o.shipping_method,
+              o.payment_due_at, (o.payment_proof_url IS NOT NULL) AS has_payment_proof,
+              (SELECT pt.name FROM shop.pickup_points pt WHERE pt.warehouse_id = o.fulfillment_warehouse_id) AS pickup_point_name,
               (SELECT COUNT(*) FROM shop.order_items i WHERE i.order_id = o.id) AS item_count,
               s.status AS shipment_status, s.provider AS shipment_provider
        FROM shop.orders o

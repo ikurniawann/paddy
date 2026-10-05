@@ -189,7 +189,7 @@ export type CheckoutResult =
     }
   | { ok: false; status: number; reason: string };
 
-type ResolvedLine = {
+export type ResolvedLine = {
   productId: string;
   skuId: string | null;
   productName: string;
@@ -200,13 +200,18 @@ type ResolvedLine = {
   weightGram: number;
 };
 
-type ClaimRef = { productId: string; skuId: string | null; qty: number };
+/**
+ * warehouseId = lokasi stok yang dipotong (multi-toko, EPIC-052/054): toko
+ * pengambilan; NULL = lokasi utama produk (Gudang Pusat) untuk pesanan kirim.
+ * Varian non-multi-toko tetap memakai stok global (fungsi *_at menanganinya).
+ */
+export type ClaimRef = { productId: string; skuId: string | null; qty: number; warehouseId?: string | null };
 
-async function claimLine(claim: ClaimRef): Promise<{ success: boolean; reason?: string }> {
+export async function claimLine(claim: ClaimRef): Promise<{ success: boolean; reason?: string }> {
   const row = claim.skuId
     ? await queryOne<{ result: { success?: boolean; skipped?: boolean; reason?: string } }>(
-        "SELECT public.pos_sell_merchandise_sku_stock($1::uuid, $2::numeric) AS result",
-        [claim.skuId, claim.qty]
+        "SELECT public.pos_sell_merchandise_sku_stock_at($1::uuid, $2::uuid, $3::numeric) AS result",
+        [claim.skuId, claim.warehouseId ?? null, claim.qty]
       )
     : await queryOne<{ result: { success?: boolean; skipped?: boolean; reason?: string } }>(
         "SELECT public.pos_sell_merchandise_stock($1::uuid, $2::numeric) AS result",
@@ -220,12 +225,13 @@ async function claimLine(claim: ClaimRef): Promise<{ success: boolean; reason?: 
   return { success: true };
 }
 
-async function restoreClaims(claims: ClaimRef[]): Promise<void> {
+export async function restoreClaims(claims: ClaimRef[]): Promise<void> {
   for (const claim of claims) {
     try {
       if (claim.skuId) {
-        await query("SELECT public.pos_sell_merchandise_sku_stock($1::uuid, $2::numeric)", [
+        await query("SELECT public.pos_sell_merchandise_sku_stock_at($1::uuid, $2::uuid, $3::numeric)", [
           claim.skuId,
+          claim.warehouseId ?? null,
           -claim.qty,
         ]);
       } else {
@@ -241,7 +247,7 @@ async function restoreClaims(claims: ClaimRef[]): Promise<void> {
 }
 
 /** Muat & validasi baris keranjang dari katalog (harga TIDAK dipercaya dari klien). */
-async function resolveLines(items: CheckoutItemInput[]): Promise<
+export async function resolveLines(items: CheckoutItemInput[]): Promise<
   | { ok: true; lines: ResolvedLine[] }
   | { ok: false; reason: string }
 > {
@@ -515,10 +521,10 @@ export async function commitOrderReservations(orderId: string): Promise<void> {
 
 /** Webhook EXPIRED / pembatalan: kembalikan stok reservasi yang masih held. */
 export async function releaseOrderReservations(orderId: string): Promise<void> {
-  const rows = await query<{ id: string; product_id: string; sku_id: string | null; qty: string }>(
+  const rows = await query<{ id: string; product_id: string; sku_id: string | null; qty: string; warehouse_id: string | null }>(
     `UPDATE shop.stock_reservations SET status='released', updated_at=now()
      WHERE order_id = $1::uuid AND status='held'
-     RETURNING id, product_id, sku_id, qty`,
+     RETURNING id, product_id, sku_id, qty, warehouse_id`,
     [orderId]
   );
   await restoreClaims(
@@ -526,6 +532,7 @@ export async function releaseOrderReservations(orderId: string): Promise<void> {
       productId: row.product_id,
       skuId: row.sku_id,
       qty: Number(row.qty) || 0,
+      warehouseId: row.warehouse_id,
     }))
   );
 }
@@ -535,10 +542,10 @@ export async function releaseOrderReservations(orderId: string): Promise<void> {
  * Xendit, keputusan owner): reservasi committed dikembalikan juga.
  */
 export async function restoreCommittedReservations(orderId: string): Promise<void> {
-  const rows = await query<{ id: string; product_id: string; sku_id: string | null; qty: string }>(
+  const rows = await query<{ id: string; product_id: string; sku_id: string | null; qty: string; warehouse_id: string | null }>(
     `UPDATE shop.stock_reservations SET status='released', updated_at=now()
      WHERE order_id = $1::uuid AND status IN ('held','committed')
-     RETURNING id, product_id, sku_id, qty`,
+     RETURNING id, product_id, sku_id, qty, warehouse_id`,
     [orderId]
   );
   await restoreClaims(
@@ -546,6 +553,7 @@ export async function restoreCommittedReservations(orderId: string): Promise<voi
       productId: row.product_id,
       skuId: row.sku_id,
       qty: Number(row.qty) || 0,
+      warehouseId: row.warehouse_id,
     }))
   );
 }

@@ -62,6 +62,9 @@ const PUBLIC_AUTH_PREFIXES = [
   "/pass",
   "/shop",
   "/api/public/shop",
+  // EPIC-054 — website toko publik (host toko di-rewrite ke /store)
+  "/store",
+  "/api/public/store",
   // EPIC-050 T-5.3 — form publik CRM (web-to-lead)
   "/public",
   "/api/public/crm/forms",

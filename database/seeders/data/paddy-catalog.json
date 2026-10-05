@@ -307,7 +307,8 @@
      "stock": 7
     }
    ],
-   "source_url": "https://paddy.id/product/ultra-tech-pink/"
+   "source_url": "https://paddy.id/product/ultra-tech-pink/",
+   "collections": []
   },
   {
    "sku": "PDY-CS-002",
@@ -503,7 +504,8 @@
      "stock": 19
     }
    ],
-   "source_url": "https://paddy.id/product/ultra-grip-2-0-white/"
+   "source_url": "https://paddy.id/product/ultra-grip-2-0-white/",
+   "collections": []
   },
   {
    "sku": "PDY-CS-003",
@@ -819,7 +821,8 @@
      "stock": 17
     }
    ],
-   "source_url": "https://paddy.id/product/bumper-pocket-case-clear/"
+   "source_url": "https://paddy.id/product/bumper-pocket-case-clear/",
+   "collections": []
   },
   {
    "sku": "PDY-CS-004",
@@ -1135,7 +1138,8 @@
      "stock": 4
     }
    ],
-   "source_url": "https://paddy.id/product/camera-cover-case-white/"
+   "source_url": "https://paddy.id/product/camera-cover-case-white/",
+   "collections": []
   },
   {
    "sku": "PDY-CT-001",
@@ -1205,7 +1209,10 @@
      "stock": 3
     }
    ],
-   "source_url": "https://paddy.id/product/strawberry-matcha-by-sasa-khalisa/"
+   "source_url": "https://paddy.id/product/strawberry-matcha-by-sasa-khalisa/",
+   "collections": [
+    "Collaboration"
+   ]
   },
   {
    "sku": "PDY-CT-002",
@@ -1275,7 +1282,10 @@
      "stock": 14
     }
    ],
-   "source_url": "https://paddy.id/product/denim-fever-light-by-sasa-khalisa/"
+   "source_url": "https://paddy.id/product/denim-fever-light-by-sasa-khalisa/",
+   "collections": [
+    "Collaboration"
+   ]
   },
   {
    "sku": "PDY-CT-003",
@@ -1345,7 +1355,8 @@
      "stock": 3
     }
    ],
-   "source_url": "https://paddy.id/product/kawaii-cafe-by-sasa-khalisa/"
+   "source_url": "https://paddy.id/product/kawaii-cafe-by-sasa-khalisa/",
+   "collections": []
   },
   {
    "sku": "PDY-CT-004",
@@ -1415,7 +1426,8 @@
      "stock": 22
     }
    ],
-   "source_url": "https://paddy.id/product/fruity-kitty-by-channidraw/"
+   "source_url": "https://paddy.id/product/fruity-kitty-by-channidraw/",
+   "collections": []
   },
   {
    "sku": "PDY-CT-005",
@@ -1485,7 +1497,8 @@
      "stock": 8
     }
    ],
-   "source_url": "https://paddy.id/product/meowland-by-channidraw/"
+   "source_url": "https://paddy.id/product/meowland-by-channidraw/",
+   "collections": []
   },
   {
    "sku": "PDY-CT-006",
@@ -1555,7 +1568,8 @@
      "stock": 23
     }
    ],
-   "source_url": "https://paddy.id/product/little-prince-by-dear-sun-hand/"
+   "source_url": "https://paddy.id/product/little-prince-by-dear-sun-hand/",
+   "collections": []
   },
   {
    "sku": "PDY-CT-007",
@@ -1625,7 +1639,8 @@
      "stock": 22
     }
    ],
-   "source_url": "https://paddy.id/product/alice-by-dear-sun-hand/"
+   "source_url": "https://paddy.id/product/alice-by-dear-sun-hand/",
+   "collections": []
   },
   {
    "sku": "PDY-CT-008",
@@ -1695,7 +1710,8 @@
      "stock": 13
     }
    ],
-   "source_url": "https://paddy.id/product/tomato-mart-by-pica-pica/"
+   "source_url": "https://paddy.id/product/tomato-mart-by-pica-pica/",
+   "collections": []
   },
   {
    "sku": "PDY-CT-009",
@@ -1765,7 +1781,8 @@
      "stock": 22
     }
    ],
-   "source_url": "https://paddy.id/product/lovely-doodles-by-pica-pica/"
+   "source_url": "https://paddy.id/product/lovely-doodles-by-pica-pica/",
+   "collections": []
   },
   {
    "sku": "PDY-CT-010",
@@ -1835,7 +1852,10 @@
      "stock": 16
     }
    ],
-   "source_url": "https://paddy.id/product/bloo-the-catto-by-tabe-thay/"
+   "source_url": "https://paddy.id/product/bloo-the-catto-by-tabe-thay/",
+   "collections": [
+    "Collaboration"
+   ]
   },
   {
    "sku": "PDY-CT-011",
@@ -1905,7 +1925,10 @@
      "stock": 3
     }
    ],
-   "source_url": "https://paddy.id/product/colorful-confidence-by-suci-draw/"
+   "source_url": "https://paddy.id/product/colorful-confidence-by-suci-draw/",
+   "collections": [
+    "Collaboration"
+   ]
   },
   {
    "sku": "PDY-CT-012",
@@ -1975,7 +1998,10 @@
      "stock": 5
     }
    ],
-   "source_url": "https://paddy.id/product/cloudy-by-ervastudio/"
+   "source_url": "https://paddy.id/product/cloudy-by-ervastudio/",
+   "collections": [
+    "Collaboration"
+   ]
   },
   {
    "sku": "PDY-CT-013",
@@ -2045,7 +2071,10 @@
      "stock": 2
     }
    ],
-   "source_url": "https://paddy.id/product/tiny-friends-by-brombielab/"
+   "source_url": "https://paddy.id/product/tiny-friends-by-brombielab/",
+   "collections": [
+    "Collaboration"
+   ]
   },
   {
    "sku": "PDY-CT-014",
@@ -2115,7 +2144,10 @@
      "stock": 14
     }
    ],
-   "source_url": "https://paddy.id/product/duck-persona-by-peteijo/"
+   "source_url": "https://paddy.id/product/duck-persona-by-peteijo/",
+   "collections": [
+    "Collaboration"
+   ]
   },
   {
    "sku": "PDY-CT-015",
@@ -2185,7 +2217,8 @@
      "stock": 4
     }
    ],
-   "source_url": "https://paddy.id/product/tomato-is-life/"
+   "source_url": "https://paddy.id/product/tomato-is-life/",
+   "collections": []
   },
   {
    "sku": "PDY-CT-016",
@@ -2255,7 +2288,8 @@
      "stock": 19
     }
    ],
-   "source_url": "https://paddy.id/product/slow-morning/"
+   "source_url": "https://paddy.id/product/slow-morning/",
+   "collections": []
   },
   {
    "sku": "PDY-PD-001",
@@ -2298,7 +2332,8 @@
      "stock": 8
     }
    ],
-   "source_url": "https://paddy.id/product/purple-leopard-pods/"
+   "source_url": "https://paddy.id/product/purple-leopard-pods/",
+   "collections": []
   },
   {
    "sku": "PDY-PD-002",
@@ -2341,7 +2376,8 @@
      "stock": 10
     }
    ],
-   "source_url": "https://paddy.id/product/totoro-flower-pods/"
+   "source_url": "https://paddy.id/product/totoro-flower-pods/",
+   "collections": []
   },
   {
    "sku": "PDY-PD-003",
@@ -2384,7 +2420,8 @@
      "stock": 24
     }
    ],
-   "source_url": "https://paddy.id/product/rainbow-fleur-pods/"
+   "source_url": "https://paddy.id/product/rainbow-fleur-pods/",
+   "collections": []
   },
   {
    "sku": "PDY-PD-004",
@@ -2427,7 +2464,8 @@
      "stock": 20
     }
    ],
-   "source_url": "https://paddy.id/product/duckie-balloons-pods/"
+   "source_url": "https://paddy.id/product/duckie-balloons-pods/",
+   "collections": []
   },
   {
    "sku": "PDY-PD-005",
@@ -2470,7 +2508,8 @@
      "stock": 22
     }
    ],
-   "source_url": "https://paddy.id/product/chatime-bobba-pods/"
+   "source_url": "https://paddy.id/product/chatime-bobba-pods/",
+   "collections": []
   },
   {
    "sku": "PDY-PD-006",
@@ -2513,7 +2552,8 @@
      "stock": 23
     }
    ],
-   "source_url": "https://paddy.id/product/flower-spring-blooms-pods/"
+   "source_url": "https://paddy.id/product/flower-spring-blooms-pods/",
+   "collections": []
   },
   {
    "sku": "PDY-PS-001",
@@ -2528,7 +2568,8 @@
    "barcode": "2000000002170",
    "stock": 13,
    "variants": [],
-   "source_url": "https://paddy.id/product/bandung-foodie-popsocket/"
+   "source_url": "https://paddy.id/product/bandung-foodie-popsocket/",
+   "collections": []
   },
   {
    "sku": "PDY-PS-002",
@@ -2543,7 +2584,8 @@
    "barcode": "2000000002187",
    "stock": 24,
    "variants": [],
-   "source_url": "https://paddy.id/product/thinking-about-love-popsocket/"
+   "source_url": "https://paddy.id/product/thinking-about-love-popsocket/",
+   "collections": []
   },
   {
    "sku": "PDY-PS-003",
@@ -2558,7 +2600,8 @@
    "barcode": "2000000002194",
    "stock": 11,
    "variants": [],
-   "source_url": "https://paddy.id/product/tahura-popsocket/"
+   "source_url": "https://paddy.id/product/tahura-popsocket/",
+   "collections": []
   },
   {
    "sku": "PDY-PS-004",
@@ -2573,7 +2616,8 @@
    "barcode": "2000000002200",
    "stock": 14,
    "variants": [],
-   "source_url": "https://paddy.id/product/gasibuddies-popsocket/"
+   "source_url": "https://paddy.id/product/gasibuddies-popsocket/",
+   "collections": []
   },
   {
    "sku": "PDY-PS-005",
@@ -2588,7 +2632,8 @@
    "barcode": "2000000002217",
    "stock": 16,
    "variants": [],
-   "source_url": "https://paddy.id/product/bus-tour-popsocket/"
+   "source_url": "https://paddy.id/product/bus-tour-popsocket/",
+   "collections": []
   },
   {
    "sku": "PDY-PS-006",
@@ -2603,7 +2648,8 @@
    "barcode": "2000000002224",
    "stock": 23,
    "variants": [],
-   "source_url": "https://paddy.id/product/adorable-goods-popsocket/"
+   "source_url": "https://paddy.id/product/adorable-goods-popsocket/",
+   "collections": []
   },
   {
    "sku": "PDY-PS-007",
@@ -2618,7 +2664,8 @@
    "barcode": "2000000002231",
    "stock": 24,
    "variants": [],
-   "source_url": "https://paddy.id/product/printed-popsocke/"
+   "source_url": "https://paddy.id/product/printed-popsocke/",
+   "collections": []
   },
   {
    "sku": "PDY-AC-001",
@@ -2688,7 +2735,10 @@
      "stock": 19
     }
    ],
-   "source_url": "https://paddy.id/product/paddy-tempered-glass-with-applicator/"
+   "source_url": "https://paddy.id/product/paddy-tempered-glass-with-applicator/",
+   "collections": [
+    "Best Seller"
+   ]
   },
   {
    "sku": "PDY-AC-002",
@@ -2758,7 +2808,10 @@
      "stock": 18
     }
    ],
-   "source_url": "https://paddy.id/product/paddy-tempered-glass-gorilla-glass/"
+   "source_url": "https://paddy.id/product/paddy-tempered-glass-gorilla-glass/",
+   "collections": [
+    "Best Seller"
+   ]
   },
   {
    "sku": "PDY-AC-003",
@@ -2828,7 +2881,8 @@
      "stock": 12
     }
    ],
-   "source_url": "https://paddy.id/product/hijau-tua/"
+   "source_url": "https://paddy.id/product/hijau-tua/",
+   "collections": []
   },
   {
    "sku": "PDY-AC-004",
@@ -2889,7 +2943,8 @@
      "stock": 2
     }
    ],
-   "source_url": "https://paddy.id/product/beads-charm-icy-winter-blue/"
+   "source_url": "https://paddy.id/product/beads-charm-icy-winter-blue/",
+   "collections": []
   },
   {
    "sku": "PDY-AC-005",
@@ -2932,7 +2987,8 @@
      "stock": 14
     }
    ],
-   "source_url": "https://paddy.id/product/beads-charm-candy-pop-berry-2/"
+   "source_url": "https://paddy.id/product/beads-charm-candy-pop-berry-2/",
+   "collections": []
   },
   {
    "sku": "PDY-AC-006",
@@ -2975,7 +3031,8 @@
      "stock": 24
     }
    ],
-   "source_url": "https://paddy.id/product/paddy-special-gift-box-blue/"
+   "source_url": "https://paddy.id/product/paddy-special-gift-box-blue/",
+   "collections": []
   },
   {
    "sku": "PDY-BG-001",
@@ -3018,7 +3075,10 @@
      "stock": 17
     }
    ],
-   "source_url": "https://paddy.id/product/small-kelly-two-tone-backpack-sweet-lilac/"
+   "source_url": "https://paddy.id/product/small-kelly-two-tone-backpack-sweet-lilac/",
+   "collections": [
+    "Small Basic Leather Backpack"
+   ]
   },
   {
    "sku": "PDY-BG-002",
@@ -3061,7 +3121,8 @@
      "stock": 9
     }
    ],
-   "source_url": "https://paddy.id/product/yuppie-mini-basic-leather-backpack-2-in-1-sky-blue/"
+   "source_url": "https://paddy.id/product/yuppie-mini-basic-leather-backpack-2-in-1-sky-blue/",
+   "collections": []
   },
   {
    "sku": "PDY-BG-003",
@@ -3095,7 +3156,8 @@
      "stock": 20
     }
    ],
-   "source_url": "https://paddy.id/product/kayya-backpack-ivory/"
+   "source_url": "https://paddy.id/product/kayya-backpack-ivory/",
+   "collections": []
   },
   {
    "sku": "PDY-BG-004",
@@ -3156,7 +3218,8 @@
      "stock": 21
     }
    ],
-   "source_url": "https://paddy.id/product/gizli-leather-backpack-pistachio/"
+   "source_url": "https://paddy.id/product/gizli-leather-backpack-pistachio/",
+   "collections": []
   },
   {
    "sku": "PDY-BG-005",
@@ -3217,7 +3280,8 @@
      "stock": 15
     }
    ],
-   "source_url": "https://paddy.id/product/paddy-knitted-bag-yellow-summer/"
+   "source_url": "https://paddy.id/product/paddy-knitted-bag-yellow-summer/",
+   "collections": []
   },
   {
    "sku": "PDY-BG-006",
@@ -3232,7 +3296,10 @@
    "barcode": "2000000002712",
    "stock": 5,
    "variants": [],
-   "source_url": "https://paddy.id/product/menari-shoulder-bag-paddy-x-ify-alyssa/"
+   "source_url": "https://paddy.id/product/menari-shoulder-bag-paddy-x-ify-alyssa/",
+   "collections": [
+    "Memori Istimewa Paddy x Ify Alyssa Special Collaboration"
+   ]
   },
   {
    "sku": "PDY-WT-001",
@@ -3247,7 +3314,8 @@
    "barcode": "2000000002729",
    "stock": 24,
    "variants": [],
-   "source_url": "https://paddy.id/product/paddywatch-g-series-2/"
+   "source_url": "https://paddy.id/product/paddywatch-g-series-2/",
+   "collections": []
   },
   {
    "sku": "PDY-WT-002",
@@ -3290,7 +3358,8 @@
      "stock": 4
     }
    ],
-   "source_url": "https://paddy.id/product/paddywatch-nea-silver/"
+   "source_url": "https://paddy.id/product/paddywatch-nea-silver/",
+   "collections": []
   },
   {
    "sku": "PDY-WT-003",
@@ -3324,7 +3393,8 @@
      "stock": 2
     }
    ],
-   "source_url": "https://paddy.id/product/paddy-watch-orion-pro-rose-gold/"
+   "source_url": "https://paddy.id/product/paddy-watch-orion-pro-rose-gold/",
+   "collections": []
   },
   {
    "sku": "PDY-WT-004",
@@ -3367,7 +3437,8 @@
      "stock": 6
     }
    ],
-   "source_url": "https://paddy.id/product/paddywatch-hazel-pro-rose-gold/"
+   "source_url": "https://paddy.id/product/paddywatch-hazel-pro-rose-gold/",
+   "collections": []
   },
   {
    "sku": "PDY-WT-005",
@@ -3401,7 +3472,8 @@
      "stock": 9
     }
    ],
-   "source_url": "https://paddy.id/product/orion-navy/"
+   "source_url": "https://paddy.id/product/orion-navy/",
+   "collections": []
   },
   {
    "sku": "PDY-WT-006",
@@ -3444,7 +3516,8 @@
      "stock": 6
     }
    ],
-   "source_url": "https://paddy.id/product/silver-2/"
+   "source_url": "https://paddy.id/product/silver-2/",
+   "collections": []
   },
   {
    "sku": "PDY-ST-001",
@@ -3505,7 +3578,8 @@
      "stock": 8
     }
    ],
-   "source_url": "https://paddy.id/product/paddy-watch-strap-orion-silicone-white-milk/"
+   "source_url": "https://paddy.id/product/paddy-watch-strap-orion-silicone-white-milk/",
+   "collections": []
   },
   {
    "sku": "PDY-ST-002",
@@ -3566,7 +3640,8 @@
      "stock": 16
     }
    ],
-   "source_url": "https://paddy.id/product/paddy-watch-strap-orion-nylon-sweet-pink/"
+   "source_url": "https://paddy.id/product/paddy-watch-strap-orion-nylon-sweet-pink/",
+   "collections": []
   },
   {
    "sku": "PDY-ST-003",
@@ -3618,7 +3693,8 @@
      "stock": 23
     }
    ],
-   "source_url": "https://paddy.id/product/paddy-watch-strap-hazel-nylon-stone/"
+   "source_url": "https://paddy.id/product/paddy-watch-strap-hazel-nylon-stone/",
+   "collections": []
   },
   {
    "sku": "PDY-AP-001",
@@ -3652,7 +3728,8 @@
      "stock": 21
     }
    ],
-   "source_url": "https://paddy.id/product/paddy-knitwear-cardigan-rajut-blue-breakfast/"
+   "source_url": "https://paddy.id/product/paddy-knitwear-cardigan-rajut-blue-breakfast/",
+   "collections": []
   },
   {
    "sku": "PDY-AP-002",
@@ -3667,7 +3744,8 @@
    "barcode": "2000000003023",
    "stock": 18,
    "variants": [],
-   "source_url": "https://paddy.id/product/paddy-knitwear-sweater-rajut-pink-swirl/"
+   "source_url": "https://paddy.id/product/paddy-knitwear-sweater-rajut-pink-swirl/",
+   "collections": []
   },
   {
    "sku": "PDY-PF-001",
@@ -3719,7 +3797,8 @@
      "stock": 5
     }
    ],
-   "source_url": "https://paddy.id/product/paddy-parfume-lullababy/"
+   "source_url": "https://paddy.id/product/paddy-parfume-lullababy/",
+   "collections": []
   }
  ]
 }

@@ -1,0 +1,160 @@
+/* Website toko publik Paddy (EPIC-054) — palet & reset lokal.
+   Toko harus tampil sama apa pun tema ERP (dark/light, skala UI), jadi semua
+   warna dibaca dari variabel di bawah dan beberapa aturan global di-reset. */
+
+html:has(.paddy-store) {
+  font-size: 16px;
+  background: #ffffff;
+}
+
+.paddy-store {
+  --store-pink: #e3066f;
+  --store-pink-dark: #b8045a;
+  --store-pink-soft: #f3c9df;
+  --store-pink-tint: #fdf2f7;
+  --store-indigo: #4a5fa8;
+  --store-indigo-dark: #3d4f8f;
+  --store-insta: #3d8bd9;
+  --store-text: #333333;
+  --store-muted: #777777;
+  --store-border: #e5e5e5;
+  --store-wa: #25d366;
+  color-scheme: light;
+  background: #ffffff;
+  color: var(--store-text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* globals.css memberi .flex.min-h-screen latar "page mesh" ERP; toko selalu putih. */
+.paddy-store.paddy-store {
+  background: #ffffff;
+}
+
+/* globals.css memaksa border/background input (tema ERP) dengan !important. */
+.paddy-store input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.paddy-store textarea,
+.paddy-store select {
+  border-color: var(--store-border) !important;
+  background: #ffffff !important;
+  color: var(--store-text);
+}
+
+.paddy-store input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+.paddy-store textarea:focus,
+.paddy-store select:focus {
+  border-color: var(--store-pink) !important;
+  box-shadow: 0 0 0 2px rgba(227, 6, 111, 0.15) !important;
+  outline: none !important;
+}
+
+.paddy-store .store-select-pink {
+  background: var(--store-pink-tint) !important;
+}
+
+.paddy-store :focus-visible {
+  outline: 2px solid var(--store-pink);
+  outline-offset: 2px;
+}
+
+.paddy-store input[type="range"] {
+  accent-color: var(--store-pink);
+}
+
+/* globals.css juga memutihkan input range (selector input:not(checkbox):not(radio)). */
+.paddy-store input[type="range"].store-range {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Dual range slider: dua input range ditumpuk, hanya jempolnya yang bisa diklik. */
+.paddy-store .store-range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  pointer-events: none;
+  margin: 0;
+  height: 14px;
+}
+.paddy-store .store-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 9999px;
+  border: 2px solid var(--store-text);
+  background: #ffffff;
+  cursor: pointer;
+}
+.paddy-store .store-range::-moz-range-thumb {
+  pointer-events: auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  border: 2px solid var(--store-text);
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.paddy-store .store-prose p {
+  margin: 0 0 1em;
+  line-height: 1.7;
+}
+.paddy-store .store-prose ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0 0 1em;
+}
+.paddy-store .store-prose ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+  margin: 0 0 1em;
+}
+.paddy-store .store-prose li {
+  margin-bottom: 0.35em;
+  line-height: 1.6;
+}
+.paddy-store .store-prose h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1.5em 0 0.5em;
+}
+
+.paddy-store .store-scrollbar-none {
+  scrollbar-width: none;
+}
+.paddy-store .store-scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes store-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.paddy-store .store-toast {
+  animation: store-toast-in 180ms ease-out;
+}
+
+@keyframes store-drawer-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.paddy-store .store-drawer {
+  animation: store-drawer-in 200ms ease-out;
+}
